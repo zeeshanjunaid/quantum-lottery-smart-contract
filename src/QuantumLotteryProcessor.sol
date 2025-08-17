@@ -9,9 +9,6 @@ import {QuantumLotteryTypes} from "./QuantumLotteryTypes.sol";
 library QuantumLotteryProcessor {
     using SafeERC20 for IERC20;
 
-    // Event that needs to be emitted by the calling contract when Q-score caps
-    event QScoreCappedInProcessor(address indexed player, uint256 hourId);
-
     /**
      * @notice Process a chunk of a draw: combines winner finding and post-winner updates
      * @dev This was extracted from the main contract to reduce stack/local pressure during codegen

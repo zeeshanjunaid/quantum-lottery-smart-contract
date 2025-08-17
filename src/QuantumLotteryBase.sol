@@ -37,7 +37,11 @@ contract QuantumLotteryBase is
         uint256 currentHourId = block.timestamp / SECONDS_PER_HOUR;
         Draw storage draw = draws[currentHourId];
         if (draw.status != DrawStatus.OPEN) revert DrawNotOpen();
-        if (lastEnteredHourPlusOne[msg.sender] == currentHourId + 1) {
+    // NOTE: Slither "dangerous strict equality" informational warning
+    // is expected here. We intentionally compare the lastEnteredHourPlusOne
+    // sentinel against currentHourId + 1 to prevent duplicate entries in the
+    // same hour while allowing a user to participate in consecutive hours.
+    if (lastEnteredHourPlusOne[msg.sender] == currentHourId + 1) {
             revert PlayerAlreadyEntered();
         }
         if (draw.participants.length >= MAX_PARTICIPANTS) revert DrawIsFull();
@@ -153,6 +157,17 @@ contract QuantumLotteryBase is
         requestId = _sendVrfRequest(_hourId);
     }
 
+    /// @dev Sends the randomness request to the trusted Chainlink VRF coordinator.
+    ///
+    /// Rationale & Slither notes:
+    /// - This function performs an external call before updating some state (the
+    ///   requestId mapping) because we need the returned requestId from the coordinator.
+    /// - The caller (requestRandomWinner) has already set the draw status to
+    ///   CALCULATING_WINNER and recorded the request timestamp before invoking this.
+    /// - Chainlink VRF cannot synchronously callback within the same transaction,
+    ///   so typical reentrancy is not possible here. On failure, we revert the
+    ///   status to OPEN inside the catch block to keep state consistent.
+    /// - This pattern is CEI-safe given the trust model and the VRF call semantics.
     function _sendVrfRequest(
         uint256 _hourId
     ) internal returns (uint256 requestId) {
@@ -296,83 +311,7 @@ contract QuantumLotteryBase is
         return draws[_hourId].reservedRefunds;
     }
 
-    // internal helper: find winner scanning up to _iterations participants starting from draw.processingIndex
-    function _findWinnerChunk(
-        uint256 _hourId,
-        uint256 _iterations
-    ) internal returns (bool) {
-        // Delegate to processor: processDrawChunk handles winner-finding as Phase A.
-        // We call with the provided iterations and ignore finalization signal here.
-        (bool finished, ) = QuantumLotteryProcessor.processDrawChunk(
-            draws,
-            players,
-            s_participantIndexByHour,
-            i_usdcToken,
-            i_treasury,
-            _hourId,
-            _iterations
-        );
-        return finished;
-    }
-
-    /// @dev Check a single participant index for winner condition and update draw state.
-    function _checkWinnerAtIndex(
-        uint256 _hourId,
-        uint256 /* _index */
-    ) internal returns (bool) {
-        // This helper is now covered by QuantumLotteryProcessor; keep thin wrapper
-        // for any legacy callers by invoking processDrawChunk for a single iteration.
-        (bool finished, ) = QuantumLotteryProcessor.processDrawChunk(
-            draws,
-            players,
-            s_participantIndexByHour,
-            i_usdcToken,
-            i_treasury,
-            _hourId,
-            1
-        );
-        return finished;
-    }
-
-    // internal helper: process post-winner updates for up to _iterations participants; returns true when all done
-    function _processUpdatesChunk(
-        uint256 _hourId,
-        uint256 _iterations,
-        uint256 /* _bonusMultiplier */
-    ) internal returns (bool) {
-        // Delegate to processor which handles post-winner updates and finalization
-        (bool finished, ) = QuantumLotteryProcessor.processDrawChunk(
-            draws,
-            players,
-            s_participantIndexByHour,
-            i_usdcToken,
-            i_treasury,
-            _hourId,
-            _iterations
-        );
-        return finished;
-    }
-
     // _finalizeDraw logic delegated to QuantumLotteryProcessor (payouts and finalization).
-
-    /// @dev Apply post-winner updates for a participant identified by index in the draw participants array.
-    function _applyPostWinnerUpdateByIndex(
-        uint256 _hourId,
-        uint256 /* _index */,
-        uint256 /* _bonusMultiplier */,
-        address /* _winner */
-    ) internal {
-        // Delegate logic to the processor; call it for a single iteration to process this index
-        QuantumLotteryProcessor.processDrawChunk(
-            draws,
-            players,
-            s_participantIndexByHour,
-            i_usdcToken,
-            i_treasury,
-            _hourId,
-            1
-        );
-    }
 
     // Winner/loser per-index update logic delegated to QuantumLotteryProcessor.
 
