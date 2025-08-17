@@ -6,9 +6,9 @@ import {QuantumLotteryTypes} from "./QuantumLotteryTypes.sol";
 library QuantumLotteryForceResolve {
     function forceResolveCore(
         mapping(uint256 => QuantumLotteryTypes.Draw) storage draws,
-        uint256 _hourId
+    uint256 hourId
     ) internal returns (uint256 participantCount) {
-        QuantumLotteryTypes.Draw storage draw = draws[_hourId];
+    QuantumLotteryTypes.Draw storage draw = draws[hourId];
         draw.status = QuantumLotteryTypes.DrawStatus.RESOLVED;
         draw.forceResolved = true;
         draw.prizePot = 0;

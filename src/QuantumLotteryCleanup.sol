@@ -7,24 +7,24 @@ library QuantumLotteryCleanup {
     function cleanupDrawChunkStorage(
         mapping(uint256 => QuantumLotteryTypes.Draw) storage draws,
         mapping(uint256 => mapping(address => uint256))
-            storage s_participantIndexByHour,
+            storage participantIndexByHour,
         mapping(uint256 => mapping(address => bool))
-            storage s_refundClaimedByHour,
-        uint256 _hourId,
-        uint256 _iterations
+            storage refundClaimedByHour,
+        uint256 hourId,
+        uint256 iterations
     ) internal returns (bool done) {
-        QuantumLotteryTypes.Draw storage draw = draws[_hourId];
+        QuantumLotteryTypes.Draw storage draw = draws[hourId];
 
         uint256 pc = draw.participants.length;
         uint256 i = draw.cleanupIndex;
-        uint256 end = i + _iterations;
+        uint256 end = i + iterations;
         if (end > pc) end = pc;
 
         for (; i < end; i++) {
             address paddr = draw.participants[i].playerAddress;
             if (paddr != address(0)) {
-                delete s_participantIndexByHour[_hourId][paddr];
-                delete s_refundClaimedByHour[_hourId][paddr];
+                delete participantIndexByHour[hourId][paddr];
+                delete refundClaimedByHour[hourId][paddr];
             }
         }
 

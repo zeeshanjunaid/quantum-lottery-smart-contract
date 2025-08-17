@@ -8,24 +8,24 @@ library QuantumLotteryEntry {
         mapping(uint256 => QuantumLotteryTypes.Draw) storage draws,
         mapping(address => uint256) storage lastEnteredHourPlusOne,
         mapping(uint256 => mapping(address => uint256))
-            storage s_participantIndexByHour,
-        uint256 _hourId,
-        address _player,
-        uint256 _qScoreOnEntry,
-        QuantumLotteryTypes.TicketType _ticketType,
-        uint256 _ticketPrice
+        storage participantIndexByHour,
+    uint256 hourId,
+    address player,
+    uint256 qScoreOnEntry,
+    QuantumLotteryTypes.TicketType ticketType,
+    uint256 ticketPrice
     ) internal {
-        QuantumLotteryTypes.Draw storage draw = draws[_hourId];
-        lastEnteredHourPlusOne[_player] = _hourId + 1;
+    QuantumLotteryTypes.Draw storage draw = draws[hourId];
+    lastEnteredHourPlusOne[player] = hourId + 1;
         draw.participants.push(
             QuantumLotteryTypes.Participant({
-                playerAddress: _player,
-                qScoreOnEntry: _qScoreOnEntry,
-                ticketTypeOnEntry: _ticketType
+        playerAddress: player,
+        qScoreOnEntry: qScoreOnEntry,
+        ticketTypeOnEntry: ticketType
             })
         );
-        s_participantIndexByHour[_hourId][_player] = draw.participants.length;
-        draw.prizePot += _ticketPrice;
-        draw.reservedRefunds += _ticketPrice;
+    participantIndexByHour[hourId][player] = draw.participants.length;
+    draw.prizePot += ticketPrice;
+    draw.reservedRefunds += ticketPrice;
     }
 }

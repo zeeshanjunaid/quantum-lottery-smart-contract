@@ -7,9 +7,9 @@ library QuantumLotteryFulfillment {
     /// @dev Compute total Q-score for draw (moved out of contract to reduce stack pressure)
     function computeTotalQScore(
         mapping(uint256 => QuantumLotteryTypes.Draw) storage draws,
-        uint256 _hourId
+    uint256 hourId
     ) internal view returns (uint256) {
-        QuantumLotteryTypes.Draw storage d = draws[_hourId];
+    QuantumLotteryTypes.Draw storage d = draws[hourId];
         uint256 participantCount = d.participants.length;
         uint256 total = 0;
         for (uint256 i = 0; i < participantCount; i++) {

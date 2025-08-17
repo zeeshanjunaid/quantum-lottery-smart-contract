@@ -6,10 +6,10 @@ import {QuantumLotteryTypes} from "./QuantumLotteryTypes.sol";
 library QuantumLotteryWithdraw {
     function computeWithdrawUnclaimed(
         mapping(uint256 => QuantumLotteryTypes.Draw) storage draws,
-        uint256 _hourId,
+    uint256 hourId,
         uint256 currentBalance
     ) internal returns (uint256 toWithdraw) {
-        QuantumLotteryTypes.Draw storage draw = draws[_hourId];
+    QuantumLotteryTypes.Draw storage draw = draws[hourId];
         toWithdraw = draw.reservedRefunds;
         if (toWithdraw > currentBalance) toWithdraw = currentBalance;
         require(toWithdraw > 0, "No funds to withdraw");

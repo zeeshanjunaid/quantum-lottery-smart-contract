@@ -39,11 +39,11 @@ contract QuantumLotteryBase is
         uint256 currentHourId = block.timestamp / SECONDS_PER_HOUR;
         Draw storage draw = draws[currentHourId];
         if (draw.status != DrawStatus.OPEN) revert DrawNotOpen();
-    // NOTE: Slither "dangerous strict equality" informational warning
-    // is expected here. We intentionally compare the lastEnteredHourPlusOne
-    // sentinel against currentHourId + 1 to prevent duplicate entries in the
-    // same hour while allowing a user to participate in consecutive hours.
-    if (lastEnteredHourPlusOne[msg.sender] == currentHourId + 1) {
+        // NOTE: Slither "dangerous strict equality" informational warning
+        // is expected here. We intentionally compare the lastEnteredHourPlusOne
+        // sentinel against currentHourId + 1 to prevent duplicate entries in the
+        // same hour while allowing a user to participate in consecutive hours.
+        if (lastEnteredHourPlusOne[msg.sender] == currentHourId + 1) {
             revert PlayerAlreadyEntered();
         }
         if (draw.participants.length >= MAX_PARTICIPANTS) revert DrawIsFull();
@@ -82,10 +82,7 @@ contract QuantumLotteryBase is
             treasuryAddress != address(0),
             "Treasury address cannot be zero"
         );
-        require(
-            vrfCoordinator != address(0),
-            "VRF Coordinator cannot be zero"
-        );
+        require(vrfCoordinator != address(0), "VRF Coordinator cannot be zero");
         i_usdcToken = IERC20(usdcAddress);
         i_treasury = treasuryAddress;
         i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinator);
@@ -211,7 +208,7 @@ contract QuantumLotteryBase is
             .computeTotalQScore(draws, hourId);
         require(totalQScoreInPool > 0, "Total Q-Score pool is zero");
 
-    uint256 rv = randomWords[0] % totalQScoreInPool;
+        uint256 rv = randomWords[0] % totalQScoreInPool;
         // finalizeFulfill moved into library to reduce local stack pressure;
         // it returns the possibly-updated nextCosmicSurgeHour which we persist.
         nextCosmicSurgeHour = QuantumLotteryFulfillment.finalizeFulfill(
@@ -221,7 +218,7 @@ contract QuantumLotteryBase is
             totalQScoreInPool,
             nextCosmicSurgeHour
         );
-    emit RandomnessFulfilled(hourId, requestId, totalQScoreInPool);
+        emit RandomnessFulfilled(hourId, requestId, totalQScoreInPool);
     }
 
     /// @dev Validate incoming requestId mapping and clear it. Returns hourId.
@@ -255,14 +252,14 @@ contract QuantumLotteryBase is
         (
             bool finished,
             address[] memory cappedPlayers
-    ) = QuantumLotteryProcessor.processDrawChunk(
+        ) = QuantumLotteryProcessor.processDrawChunk(
                 draws,
                 players,
                 s_participantIndexByHour,
                 i_usdcToken,
                 i_treasury,
-        hourId,
-        iterations
+                hourId,
+                iterations
             );
 
         // Emit QScoreCapped events for players who hit the maximum
@@ -377,10 +374,7 @@ contract QuantumLotteryBase is
     /// @notice Withdraw unclaimed refunds after the grace period.
     /// @param hourId The hour identifier
     /// @param to Recipient address
-    function withdrawUnclaimed(
-        uint256 hourId,
-        address to
-    ) external onlyOwner {
+    function withdrawUnclaimed(uint256 hourId, address to) external onlyOwner {
         Draw storage draw = draws[hourId];
         require(draw.forceResolved, "Draw not force-resolved");
         require(
@@ -402,12 +396,7 @@ contract QuantumLotteryBase is
         uint256 amount
     ) internal {
         i_usdcToken.safeTransfer(to, amount);
-        emit RefundIssued(
-            hourId,
-            to,
-            amount,
-            draws[hourId].reservedRefunds
-        );
+        emit RefundIssued(hourId, to, amount, draws[hourId].reservedRefunds);
     }
 
     function _executeWithdrawUnclaimed(
