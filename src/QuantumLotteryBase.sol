@@ -31,8 +31,10 @@ contract QuantumLotteryBase is
     // =============================================================
     //                        CORE USER FUNCTIONS
     // =============================================================
+    /// @notice Buy a ticket for the current hour’s draw.
+    /// @param ticketType Ticket type: Standard or Quantum
     function buyTicket(
-        QuantumLotteryTypes.TicketType _ticketType
+        QuantumLotteryTypes.TicketType ticketType
     ) external nonReentrant {
         uint256 currentHourId = block.timestamp / SECONDS_PER_HOUR;
         Draw storage draw = draws[currentHourId];
@@ -49,7 +51,7 @@ contract QuantumLotteryBase is
         Player storage player = players[msg.sender];
         bool isFirstTimePlayer = player.lastPlayedHour == 0;
         bool isStreakBroken = currentHourId > (player.lastPlayedHour + 1);
-        uint256 ticketPrice = _ticketType == TicketType.Standard
+        uint256 ticketPrice = ticketType == TicketType.Standard
             ? STANDARD_TICKET_PRICE
             : QUANTUM_TICKET_PRICE;
 
@@ -63,32 +65,32 @@ contract QuantumLotteryBase is
             currentHourId,
             msg.sender,
             player.qScore,
-            _ticketType,
+            ticketType,
             ticketPrice
         );
     }
 
     constructor(
-        address _usdcAddress,
-        address _treasuryAddress,
-        address _vrfCoordinator,
-        uint64 _subscriptionId,
-        bytes32 _gasLane
-    ) Ownable(msg.sender) VRFConsumerBaseV2(_vrfCoordinator) {
-        require(_usdcAddress != address(0), "USDC address cannot be zero");
+        address usdcAddress,
+        address treasuryAddress,
+        address vrfCoordinator,
+        uint64 subscriptionId,
+        bytes32 gasLane
+    ) Ownable(msg.sender) VRFConsumerBaseV2(vrfCoordinator) {
+        require(usdcAddress != address(0), "USDC address cannot be zero");
         require(
-            _treasuryAddress != address(0),
+            treasuryAddress != address(0),
             "Treasury address cannot be zero"
         );
         require(
-            _vrfCoordinator != address(0),
+            vrfCoordinator != address(0),
             "VRF Coordinator cannot be zero"
         );
-        i_usdcToken = IERC20(_usdcAddress);
-        i_treasury = _treasuryAddress;
-        i_vrfCoordinator = VRFCoordinatorV2Interface(_vrfCoordinator);
-        i_subscriptionId = _subscriptionId;
-        i_gasLane = _gasLane;
+        i_usdcToken = IERC20(usdcAddress);
+        i_treasury = treasuryAddress;
+        i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinator);
+        i_subscriptionId = subscriptionId;
+        i_gasLane = gasLane;
     }
 
     // State variables
@@ -110,36 +112,38 @@ contract QuantumLotteryBase is
 
     /// @dev Internal helper to record participant, update indices and accounting, and emit event.
     function _recordTicketPurchase(
-        uint256 _hourId,
-        address _player,
-        uint256 _qScoreOnEntry,
-        QuantumLotteryTypes.TicketType _ticketType,
-        uint256 _ticketPrice
+        uint256 hourId,
+        address playerAddr,
+        uint256 qScoreOnEntry,
+        QuantumLotteryTypes.TicketType ticketType,
+        uint256 ticketPrice
     ) internal {
         // Delegate storage updates to entry library to reduce contract locals
         QuantumLotteryEntry.recordTicketPurchase(
             draws,
             lastEnteredHourPlusOne,
             s_participantIndexByHour,
-            _hourId,
-            _player,
-            _qScoreOnEntry,
-            _ticketType,
-            _ticketPrice
+            hourId,
+            playerAddr,
+            qScoreOnEntry,
+            ticketType,
+            ticketPrice
         );
-        emit TicketPurchased(_hourId, _player, _ticketType, _qScoreOnEntry);
-        i_usdcToken.safeTransferFrom(_player, address(this), _ticketPrice);
+        emit TicketPurchased(hourId, playerAddr, ticketType, qScoreOnEntry);
+        i_usdcToken.safeTransferFrom(playerAddr, address(this), ticketPrice);
     }
 
     // =============================================================
     //                        VRF & ADMIN FUNCTIONS
     // =============================================================
+    /// @notice Request randomness to pick a winner for a past hour’s draw.
+    /// @param hourId The hour to close (must be in the past and have participants)
     function requestRandomWinner(
-        uint256 _hourId
+        uint256 hourId
     ) external onlyOwner nonReentrant returns (uint256 requestId) {
-        if (_hourId >= block.timestamp / SECONDS_PER_HOUR)
+        if (hourId >= block.timestamp / SECONDS_PER_HOUR)
             revert DrawCannotBeClosedYet();
-        Draw storage drawToClose = draws[_hourId];
+        Draw storage drawToClose = draws[hourId];
         if (drawToClose.participants.length == 0) {
             revert DrawHasNoParticipants();
         }
@@ -154,7 +158,7 @@ contract QuantumLotteryBase is
         // may remain in CALCULATING_WINNER state until the owner force-resolves it.
         // This is expected behavior to avoid unsafe automatic fallback logic.
 
-        requestId = _sendVrfRequest(_hourId);
+        requestId = _sendVrfRequest(hourId);
     }
 
     /// @dev Sends the randomness request to the trusted Chainlink VRF coordinator.
@@ -169,7 +173,7 @@ contract QuantumLotteryBase is
     ///   status to OPEN inside the catch block to keep state consistent.
     /// - This pattern is CEI-safe given the trust model and the VRF call semantics.
     function _sendVrfRequest(
-        uint256 _hourId
+        uint256 hourId
     ) internal returns (uint256 requestId) {
         try
             i_vrfCoordinator.requestRandomWords(
@@ -181,19 +185,22 @@ contract QuantumLotteryBase is
             )
         returns (uint256 _requestId) {
             requestId = _requestId;
-            s_requestIdToHourIdPlusOne[requestId] = _hourId + 1;
-            emit WinnerSelectionRequested(_hourId, requestId);
+            s_requestIdToHourIdPlusOne[requestId] = hourId + 1;
+            emit WinnerSelectionRequested(hourId, requestId);
         } catch {
-            draws[_hourId].status = DrawStatus.OPEN;
+            draws[hourId].status = DrawStatus.OPEN;
             revert VrfRequestFailed();
         }
     }
 
+    /// @dev VRF callback entrypoint; records randomness and prepares the draw for processing.
+    /// @param requestId The VRF request id
+    /// @param randomWords The random words returned by VRF
     function fulfillRandomWords(
-        uint256 _requestId,
-        uint256[] memory _randomWords
+        uint256 requestId,
+        uint256[] memory randomWords
     ) internal override nonReentrant {
-        uint256 hourId = _validateAndClearRequest(_requestId);
+        uint256 hourId = _validateAndClearRequest(requestId);
         Draw storage draw = draws[hourId];
         if (draw.status != DrawStatus.CALCULATING_WINNER) {
             revert InvalidRequestIdForLottery();
@@ -204,7 +211,7 @@ contract QuantumLotteryBase is
             .computeTotalQScore(draws, hourId);
         require(totalQScoreInPool > 0, "Total Q-Score pool is zero");
 
-        uint256 rv = _randomWords[0] % totalQScoreInPool;
+    uint256 rv = randomWords[0] % totalQScoreInPool;
         // finalizeFulfill moved into library to reduce local stack pressure;
         // it returns the possibly-updated nextCosmicSurgeHour which we persist.
         nextCosmicSurgeHour = QuantumLotteryFulfillment.finalizeFulfill(
@@ -214,16 +221,16 @@ contract QuantumLotteryBase is
             totalQScoreInPool,
             nextCosmicSurgeHour
         );
-        emit RandomnessFulfilled(hourId, _requestId, totalQScoreInPool);
+    emit RandomnessFulfilled(hourId, requestId, totalQScoreInPool);
     }
 
     /// @dev Validate incoming requestId mapping and clear it. Returns hourId.
     function _validateAndClearRequest(
-        uint256 _requestId
+        uint256 requestId
     ) internal returns (uint256) {
-        uint256 hourIdPlusOne = s_requestIdToHourIdPlusOne[_requestId];
+        uint256 hourIdPlusOne = s_requestIdToHourIdPlusOne[requestId];
         if (hourIdPlusOne == 0) revert InvalidRequestIdForLottery();
-        delete s_requestIdToHourIdPlusOne[_requestId];
+        delete s_requestIdToHourIdPlusOne[requestId];
         return hourIdPlusOne - 1;
     }
 
@@ -233,47 +240,47 @@ contract QuantumLotteryBase is
     /// @dev Helper to compute total Q-score of participants for a draw.
     // total Q-score computation delegated to QuantumLotteryFulfillment.computeTotalQScore
 
-    /// @notice Process a chunk of a resolved draw. Call repeatedly until it returns true.
     /// @dev Splits winner-selection and post-winner updates across multiple transactions
     /// to avoid high callback gas usage when many participants are present.
-    /// @param _hourId The hour identifier of the draw to process
-    /// @param _iterations Maximum number of participants to process in this call
+    /// @notice Process a chunk of a resolved draw; call repeatedly until it returns true.
+    /// @param hourId The hour identifier of the draw to process
+    /// @param iterations Maximum number of participants to process in this call
     /// @return done True if processing completed and payouts were made
     function processDrawChunk(
-        uint256 _hourId,
-        uint256 _iterations
+        uint256 hourId,
+        uint256 iterations
     ) external nonReentrant returns (bool done) {
         // Delegate heavy processing to the library to reduce contract-local
         // stack pressure during compilation (helps coverage runs).
         (
             bool finished,
             address[] memory cappedPlayers
-        ) = QuantumLotteryProcessor.processDrawChunk(
+    ) = QuantumLotteryProcessor.processDrawChunk(
                 draws,
                 players,
                 s_participantIndexByHour,
                 i_usdcToken,
                 i_treasury,
-                _hourId,
-                _iterations
+        hourId,
+        iterations
             );
 
         // Emit QScoreCapped events for players who hit the maximum
         for (uint256 i = 0; i < cappedPlayers.length; i++) {
-            emit QScoreCapped(cappedPlayers[i], _hourId, MAX_QSCORE);
+            emit QScoreCapped(cappedPlayers[i], hourId, MAX_QSCORE);
         }
 
         // If the library finalized the draw (performed payouts), emit the
         // WinnerPicked event here so external observers/tests see the same
         // behavior as the original in-contract finalizer.
         if (finished) {
-            Draw storage draw = draws[_hourId];
+            Draw storage draw = draws[hourId];
             uint256 prizePot = draw.prizePot;
             uint256 winnerAmount = (prizePot * WINNER_PAYOUT_PERCENT) /
                 PERCENTAGE_TOTAL;
             uint256 feeAmount = prizePot - winnerAmount;
             emit WinnerPicked(
-                _hourId,
+                hourId,
                 draw.winner,
                 winnerAmount,
                 feeAmount,
@@ -286,29 +293,32 @@ contract QuantumLotteryBase is
     }
 
     /// @notice Remove participant-related mapping entries in chunks to free storage
-    /// @dev Call repeatedly until it returns true. This avoids a large gas spike when
-    /// deleting per-participant mappings for big draws.
+    /// @notice Cleanup participant-related mappings in chunks after resolution.
+    /// @param hourId The hour identifier to cleanup
+    /// @param iterations Maximum deletions to perform this call
     function cleanupDrawChunk(
-        uint256 _hourId,
-        uint256 _iterations
+        uint256 hourId,
+        uint256 iterations
     ) external returns (bool done) {
-        Draw storage draw = draws[_hourId];
+        Draw storage draw = draws[hourId];
         require(draw.cleanupPending, "No cleanup pending");
         return
             QuantumLotteryCleanup.cleanupDrawChunkStorage(
                 draws,
                 s_participantIndexByHour,
                 s_refundClaimedByHour,
-                _hourId,
-                _iterations
+                hourId,
+                iterations
             );
     }
 
     /// @notice Returns the remaining reserved refunds liability for a given draw
+    /// @notice View reserved refunds liability for a draw.
+    /// @param hourId The hour identifier
     function getReservedRefunds(
-        uint256 _hourId
+        uint256 hourId
     ) external view returns (uint256) {
-        return draws[_hourId].reservedRefunds;
+        return draws[hourId].reservedRefunds;
     }
 
     // _finalizeDraw logic delegated to QuantumLotteryProcessor (payouts and finalization).
@@ -319,8 +329,10 @@ contract QuantumLotteryBase is
     // ...logic moved to QuantumLotteryHelpers to reduce in-contract inlining and
     // limit stack usage during codegen for coverage runs.
 
-    function setNextCosmicSurge(uint256 _timestamp) external onlyOwner {
-        uint256 hourId = _timestamp / SECONDS_PER_HOUR;
+    /// @notice Schedule a cosmic surge for a future timestamp (rounded to hour).
+    /// @param timestamp The future timestamp for the surge
+    function setNextCosmicSurge(uint256 timestamp) external onlyOwner {
+        uint256 hourId = timestamp / SECONDS_PER_HOUR;
         // prevent accidental double-scheduling; require explicit reset if needed
         require(
             nextCosmicSurgeHour == type(uint256).max,
@@ -330,39 +342,46 @@ contract QuantumLotteryBase is
         emit CosmicSurgeScheduled(hourId);
     }
 
-    function forceResolveDraw(uint256 _hourId) external onlyOwner nonReentrant {
-        Draw storage draw = draws[_hourId];
+    /// @notice Force resolve a stuck draw after the VRF timeout.
+    /// @param hourId The hour identifier to force resolve
+    function forceResolveDraw(uint256 hourId) external onlyOwner nonReentrant {
+        Draw storage draw = draws[hourId];
         if (draw.status != DrawStatus.CALCULATING_WINNER) revert DrawNotStuck();
         if (block.timestamp < draw.requestTimestamp + DRAW_RESOLUTION_TIMEOUT) {
             revert TimeoutNotReached();
         }
         uint256 _pc = QuantumLotteryForceResolve.forceResolveCore(
             draws,
-            _hourId
+            hourId
         );
-        emit DrawForceResolved(_hourId);
-        emit DrawForceResolvedWithCount(_hourId, _pc);
+        emit DrawForceResolved(hourId);
+        emit DrawForceResolvedWithCount(hourId, _pc);
     }
 
-    function claimRefund(uint256 _hourId) external nonReentrant {
-        if (!draws[_hourId].forceResolved) revert DrawNotStuck();
+    /// @notice Claim your refund from a force-resolved draw.
+    /// @param hourId The hour identifier
+    function claimRefund(uint256 hourId) external nonReentrant {
+        if (!draws[hourId].forceResolved) revert DrawNotStuck();
         uint256 refundAmount = QuantumLotteryRefunds.claimRefundCore(
             draws,
             s_participantIndexByHour,
             s_refundClaimedByHour,
-            _hourId,
+            hourId,
             msg.sender,
             STANDARD_TICKET_PRICE,
             QUANTUM_TICKET_PRICE
         );
-        _executeRefundTransfer(_hourId, msg.sender, refundAmount);
+        _executeRefundTransfer(hourId, msg.sender, refundAmount);
     }
 
+    /// @notice Withdraw unclaimed refunds after the grace period.
+    /// @param hourId The hour identifier
+    /// @param to Recipient address
     function withdrawUnclaimed(
-        uint256 _hourId,
-        address _to
+        uint256 hourId,
+        address to
     ) external onlyOwner {
-        Draw storage draw = draws[_hourId];
+        Draw storage draw = draws[hourId];
         require(draw.forceResolved, "Draw not force-resolved");
         require(
             block.timestamp >= draw.requestTimestamp + UNCLAIMED_REFUND_PERIOD,
@@ -371,37 +390,37 @@ contract QuantumLotteryBase is
         uint256 bal = i_usdcToken.balanceOf(address(this));
         uint256 toWithdraw = QuantumLotteryWithdraw.computeWithdrawUnclaimed(
             draws,
-            _hourId,
+            hourId,
             bal
         );
-        _executeWithdrawUnclaimed(_hourId, _to, toWithdraw);
+        _executeWithdrawUnclaimed(hourId, to, toWithdraw);
     }
 
     function _executeRefundTransfer(
-        uint256 _hourId,
-        address _to,
-        uint256 _amount
+        uint256 hourId,
+        address to,
+        uint256 amount
     ) internal {
-        i_usdcToken.safeTransfer(_to, _amount);
+        i_usdcToken.safeTransfer(to, amount);
         emit RefundIssued(
-            _hourId,
-            _to,
-            _amount,
-            draws[_hourId].reservedRefunds
+            hourId,
+            to,
+            amount,
+            draws[hourId].reservedRefunds
         );
     }
 
     function _executeWithdrawUnclaimed(
-        uint256 _hourId,
-        address _to,
-        uint256 _amount
+        uint256 hourId,
+        address to,
+        uint256 amount
     ) internal {
-        i_usdcToken.safeTransfer(_to, _amount);
+        i_usdcToken.safeTransfer(to, amount);
         emit WithdrawUnclaimed(
-            _hourId,
-            _to,
-            _amount,
-            draws[_hourId].reservedRefunds
+            hourId,
+            to,
+            amount,
+            draws[hourId].reservedRefunds
         );
     }
 
@@ -412,67 +431,80 @@ contract QuantumLotteryBase is
         emit CosmicSurgeCanceled(canceled);
     }
 
-    function getPrizePot(uint256 _hourId) external view returns (uint256) {
-        return draws[_hourId].prizePot;
+    /// @notice View the prize pot for a given hour.
+    /// @param hourId The hour identifier
+    function getPrizePot(uint256 hourId) external view returns (uint256) {
+        return draws[hourId].prizePot;
     }
 
-    function getWinner(uint256 _hourId) external view returns (address) {
-        return draws[_hourId].winner;
+    /// @notice View the winner address for a given hour.
+    /// @param hourId The hour identifier
+    function getWinner(uint256 hourId) external view returns (address) {
+        return draws[hourId].winner;
     }
 
+    /// @notice Emergency withdraw arbitrary ERC20 tokens by the owner.
+    /// @param token ERC20 token address
+    /// @param amount Amount to withdraw
     function emergencyWithdraw(
-        address _token,
-        uint256 _amount
+        address token,
+        uint256 amount
     ) external onlyOwner {
-        require(_token != address(0), "Invalid token address");
-        IERC20(_token).safeTransfer(owner(), _amount);
-        emit EmergencyWithdraw(_token, owner(), _amount);
+        require(token != address(0), "Invalid token address");
+        IERC20(token).safeTransfer(owner(), amount);
+        emit EmergencyWithdraw(token, owner(), amount);
     }
 
+    /// @notice Testing helper: zero out a participant slot.
     function debugZeroParticipant(
-        uint256 _hourId,
-        uint256 _index
+        uint256 hourId,
+        uint256 index
     ) external onlyOwner {
-        Draw storage draw = draws[_hourId];
-        if (_index >= draw.participants.length) revert IndexOutOfBounds();
-        draw.participants[_index].playerAddress = address(0);
+        Draw storage draw = draws[hourId];
+        if (index >= draw.participants.length) revert IndexOutOfBounds();
+        draw.participants[index].playerAddress = address(0);
     }
 
+    /// @notice Testing helper: set a player's recorded state.
     function debugSetPlayer(
-        address _player,
-        uint64 _lastPlayedHour,
-        uint32 _streakCount,
-        uint256 _qScore
+        address player,
+        uint64 lastPlayedHour,
+        uint32 streakCount,
+        uint256 qScore
     ) external onlyOwner {
-        Player storage p = players[_player];
-        p.lastPlayedHour = _lastPlayedHour;
-        p.streakCount = _streakCount;
-        p.qScore = _qScore;
+        Player storage p = players[player];
+        p.lastPlayedHour = lastPlayedHour;
+        p.streakCount = streakCount;
+        p.qScore = qScore;
     }
 
-    function lastEnteredHour(address _player) public view returns (uint256) {
-        uint256 v = lastEnteredHourPlusOne[_player];
+    /// @notice View the last hour a player entered (0 if never).
+    function lastEnteredHour(address player) public view returns (uint256) {
+        uint256 v = lastEnteredHourPlusOne[player];
         if (v == 0) return 0;
         return v - 1;
     }
 
-    function getDrawStatus(uint256 _hourId) public view returns (DrawStatus) {
-        return draws[_hourId].status;
+    /// @notice View the draw status for an hour.
+    function getDrawStatus(uint256 hourId) public view returns (DrawStatus) {
+        return draws[hourId].status;
     }
 
+    /// @notice View a participant by index for a given hour.
     function getParticipant(
-        uint256 _hourId,
-        uint256 _index
+        uint256 hourId,
+        uint256 index
     ) public view returns (Participant memory) {
-        if (_index >= draws[_hourId].participants.length) {
+        if (index >= draws[hourId].participants.length) {
             revert IndexOutOfBounds();
         }
-        return draws[_hourId].participants[_index];
+        return draws[hourId].participants[index];
     }
 
+    /// @notice View the number of participants for a given hour.
     function getParticipantsCount(
-        uint256 _hourId
+        uint256 hourId
     ) public view returns (uint256) {
-        return draws[_hourId].participants.length;
+        return draws[hourId].participants.length;
     }
 }
