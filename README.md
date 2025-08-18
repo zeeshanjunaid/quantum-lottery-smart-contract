@@ -121,6 +121,45 @@ Constructor args for `QuantumLottery`:
 
 Tip: On testnets you can deploy `TestUSDC` and mint test balances. Ticket prices are set in 6 decimals (1 USDC = 1_000_000).
 
+### Testnet deployment (Arbitrum Sepolia 421614)
+
+1) Copy `.env.example` to `.env` and fill values:
+	 - `RPC_URL`: Your Arbitrum Sepolia endpoint
+	 - `PRIVATE_KEY`: Deployer key with test ETH
+	 - `USDC_ADDRESS`: Use real test USDC or deploy `TestUSDC` (next step)
+	 - `TREASURY_ADDRESS`: Your treasury wallet
+	 - `VRF_COORDINATOR`: 0x41034422FA37197F49965a383501229671542475
+	 - `VRF_SUBSCRIPTION_ID`: Create/fund in Chainlink VRF UI for Arbitrum Sepolia
+	 - `GAS_LANE`: 0x114f3da0a805b8a67d6a7a05154f14afd91811821b38e09e03ade28a24ac2166
+
+2) (Optional) Deploy TestUSDC and mint:
+```bash
+forge script script/TestUSDC.s.sol:TestUSDCScript \
+	--rpc-url $RPC_URL \
+	--private-key $PRIVATE_KEY \
+	--broadcast
+```
+Record the address and set `USDC_ADDRESS` in `.env`. Use `mint(address,uint256)` from the owner to fund test accounts.
+
+3) Create and fund a VRF subscription for chain 421614:
+	 - Add your deployer address as a consumer if required by the coordinator
+	 - Ensure enough LINK/native fee as per Chainlink docs for testnet
+
+4) Deploy QuantumLottery:
+```bash
+forge script script/Deploy.s.sol:DeployScript \
+	--rpc-url $RPC_URL \
+	--private-key $PRIVATE_KEY \
+	--broadcast
+```
+The address is printed in the broadcast artifact under `broadcast/Deploy.s.sol/421614/run-*.json`.
+
+5) Verify (optional): set your Etherscan API key then run with `--verify`.
+
+Troubleshooting:
+- If VRF requests fail, ensure subscription is funded and the consumer (lottery address) is authorized.
+- If `processDrawChunk` reverts for gas, reduce `iterations` and call repeatedly until done.
+
 ## Frontend integration
 - ABI: compile artifacts under `out/`
 - Core calls: `buyTicket(ticketType)`, `requestRandomWinner(hourId)`, `processDrawChunk(hourId, iterations)`, `cleanupDrawChunk(hourId, iterations)`, `claimRefund(hourId)`
