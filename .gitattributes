@@ -1,0 +1,9 @@
+# Normalize line endings for all text files
+* text=auto eol=lf
+
+# Treat Solidity as text for diffs
+*.sol linguist-language=Solidity
+
+# Improve diffs for Solidity & JSON
+*.sol diff
+*.json diff

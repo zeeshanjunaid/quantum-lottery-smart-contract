@@ -1,0 +1,13 @@
+{
+  "terminal.integrated.profiles.osx": {
+    "zsh-nologin": {
+      "path": "/bin/zsh",
+      "args": []
+    },
+    "bash": {
+      "path": "/bin/bash",
+      "args": ["-l"]
+    }
+  },
+  "terminal.integrated.defaultProfile.osx": "zsh-nologin"
+}

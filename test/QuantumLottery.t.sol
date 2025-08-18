@@ -1957,9 +1957,9 @@ contract QuantumLotteryTest is Test {
 
         // buys
         vm.prank(alice);
-    lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
+        lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
         vm.prank(bob);
-    lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
+        lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
 
         uint256 afterBuyAlice = usdc.balanceOf(alice);
         uint256 afterBuyBob = usdc.balanceOf(bob);
@@ -1999,9 +1999,9 @@ contract QuantumLotteryTest is Test {
 
         // buys
         vm.prank(alice);
-    lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
+        lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
         vm.prank(bob);
-    lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
+        lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
 
         // contract balance should equal prizePot
         assertEq(usdc.balanceOf(address(lottery)), prizePot);
@@ -2159,8 +2159,8 @@ contract QuantumLotteryTest is Test {
         uint256 randomValue
     ) internal {
         uint256 hourId = block.timestamp / 3600;
-    _buy(p1, QuantumLotteryTypes.TicketType.Standard);
-    _buy(p2, QuantumLotteryTypes.TicketType.Standard);
+        _buy(p1, QuantumLotteryTypes.TicketType.Standard);
+        _buy(p2, QuantumLotteryTypes.TicketType.Standard);
         _warpToNextHour();
         uint256 requestId = _requestWinner(hourId);
 

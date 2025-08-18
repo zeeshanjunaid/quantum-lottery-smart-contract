@@ -7,8 +7,27 @@ out/
 /broadcast/*/31337/
 /broadcast/**/dry-run/
 
-# Docs
-docs/
+# Local logs and temp
+logs/
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Node/npm caches if any aux scripts use them
+node_modules/
+npm-debug.log*
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Mac cruft
+._*
 
 # Dotenv file
 .env
+
+# Broadcast full runs are OK; but hide local dry-run and forks
+/broadcast/**/dry-run/
+/broadcast/**/anvil/

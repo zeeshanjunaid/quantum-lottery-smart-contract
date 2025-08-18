@@ -1,5 +1,7 @@
 ## Quantum Lottery — Smart Contracts (Foundry)
 
+![CI](https://github.com/zeeshanjunaid/quantum-lottery-smart-contract/actions/workflows/ci.yml/badge.svg)
+
 Modular, gas-aware lottery contracts with Chainlink VRF, chunked processing, Q-score streaks, and refund safety. Built with Foundry, OpenZeppelin, and Chainlink VRF v2.
 
 ### Highlights
@@ -128,9 +130,9 @@ Tip: On testnets you can deploy `TestUSDC` and mint test balances. Ticket prices
 	 - `PRIVATE_KEY`: Deployer key with test ETH
 	 - `USDC_ADDRESS`: Use real test USDC or deploy `TestUSDC` (next step)
 	 - `TREASURY_ADDRESS`: Your treasury wallet
-	 - `VRF_COORDINATOR`: 0x41034422FA37197F49965a383501229671542475
+	- `VRF_COORDINATOR`: 0x50d47e4142598E3411aA864e08a44284e471AC6f
 	 - `VRF_SUBSCRIPTION_ID`: Create/fund in Chainlink VRF UI for Arbitrum Sepolia
-	 - `GAS_LANE`: 0x114f3da0a805b8a67d6a7a05154f14afd91811821b38e09e03ade28a24ac2166
+	- `GAS_LANE`: 0x027f94ff1465b3525f9fc03e9ff7d6d2c0953482246dd6ae07570c45d6631414
 
 2) (Optional) Deploy TestUSDC and mint:
 ```bash
