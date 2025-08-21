@@ -18,9 +18,9 @@ library QuantumLotteryCleanup {
         uint256 pc = draw.participants.length;
         uint256 i = draw.cleanupIndex;
         uint256 end = i + iterations;
-        if (end > pc) end = pc;
+    if (end >= pc) end = pc;
 
-        for (; i < end; i++) {
+    for (; i < end; ++i) {
             address paddr = draw.participants[i].playerAddress;
             if (paddr != address(0)) {
                 delete participantIndexByHour[hourId][paddr];

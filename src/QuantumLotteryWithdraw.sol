@@ -11,10 +11,10 @@ library QuantumLotteryWithdraw {
     ) internal returns (uint256 toWithdraw) {
     QuantumLotteryTypes.Draw storage draw = draws[hourId];
         toWithdraw = draw.reservedRefunds;
-        if (toWithdraw > currentBalance) toWithdraw = currentBalance;
-        require(toWithdraw > 0, "No funds to withdraw");
-        // clear reserved refunds for this draw since we're sweeping funds
-        draw.reservedRefunds = 0;
+    if (toWithdraw >= currentBalance) toWithdraw = currentBalance;
+    require(toWithdraw != 0, "No funds to withdraw");
+    // clear reserved refunds for this draw since we're sweeping funds (delete frees storage)
+    delete draw.reservedRefunds;
         return toWithdraw;
     }
 }

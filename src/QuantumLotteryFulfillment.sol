@@ -12,7 +12,7 @@ library QuantumLotteryFulfillment {
     QuantumLotteryTypes.Draw storage d = draws[hourId];
         uint256 participantCount = d.participants.length;
         uint256 total = 0;
-        for (uint256 i = 0; i < participantCount; i++) {
+    for (uint256 i = 0; i < participantCount; ++i) {
             total += d.participants[i].qScoreOnEntry;
         }
         return total;
