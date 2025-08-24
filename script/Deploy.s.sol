@@ -9,9 +9,9 @@ contract DeployScript is Script {
         // Load all the constructor arguments from your .env file
         address usdcAddress = vm.envAddress("USDC_ADDRESS");
         address treasuryAddress = vm.envAddress("TREASURY_ADDRESS");
-        address vrfCoordinator = vm.envAddress("VRF_COORDINATOR");
-        uint64 subscriptionId = uint64(vm.envUint("VRF_SUBSCRIPTION_ID"));
-        bytes32 gasLane = vm.envBytes32("GAS_LANE");
+    address vrfCoordinator = vm.envAddress("VRF_COORDINATOR");
+    uint256 subscriptionId = vm.envUint("VRF_SUBSCRIPTION_ID");
+    bytes32 gasLane = vm.envBytes32("GAS_LANE");
 
         // Start broadcasting the transaction
         vm.startBroadcast();

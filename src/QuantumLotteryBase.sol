@@ -2,11 +2,11 @@
 pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Ownable} from "solady/auth/Ownable.sol";
 import {ReentrancyGuard} from "solady/utils/ReentrancyGuard.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
-import {VRFConsumerBaseV2} from "chainlink-brownie-contracts/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
-import {VRFCoordinatorV2Interface} from "chainlink-brownie-contracts/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
+import {VRFConsumerBaseV2Plus} from "chainlink-brownie-contracts/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
+import {IVRFCoordinatorV2Plus} from "chainlink-brownie-contracts/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
+import {VRFV2PlusClient} from "chainlink-brownie-contracts/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 import {QuantumLotteryTypes} from "./QuantumLotteryTypes.sol";
 import {QuantumLotteryHelpers} from "./QuantumLotteryHelpers.sol";
 import {QuantumLotteryProcessor} from "./QuantumLotteryProcessor.sol";
@@ -22,8 +22,7 @@ import {QuantumLotteryForceResolve} from "./QuantumLotteryForceResolve.sol";
  * @notice Base implementation extracted to reduce per-contract codegen complexity for coverage.
  */
 contract QuantumLotteryBase is
-	Ownable,
-	VRFConsumerBaseV2,
+	VRFConsumerBaseV2Plus,
 	ReentrancyGuard,
 	QuantumLotteryTypes
 {
@@ -85,11 +84,9 @@ contract QuantumLotteryBase is
 		address usdcAddress,
 		address treasuryAddress,
 		address vrfCoordinator,
-		uint64 subscriptionId,
+		uint256 subscriptionId,
 		bytes32 gasLane
-		) payable VRFConsumerBaseV2(vrfCoordinator) {
-			// Initialize Solady Ownable
-			_initializeOwner(msg.sender);
+		) payable VRFConsumerBaseV2Plus(vrfCoordinator) {
 		require(usdcAddress != address(0), "USDC address cannot be zero");
 		require(
 			treasuryAddress != address(0),
@@ -98,7 +95,7 @@ contract QuantumLotteryBase is
 		require(vrfCoordinator != address(0), "VRF Coordinator cannot be zero");
 		i_usdcToken = IERC20(usdcAddress);
 		i_treasury = treasuryAddress;
-		i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinator);
+		i_vrfCoordinator = IVRFCoordinatorV2Plus(vrfCoordinator);
 		i_subscriptionId = subscriptionId;
 		i_gasLane = gasLane;
 	}
@@ -113,9 +110,9 @@ contract QuantumLotteryBase is
 	mapping(uint256 => mapping(address => bool)) private s_refundClaimedByHour;
 	uint256 public nextCosmicSurgeHour = type(uint256).max;
 
-	uint64 private immutable i_subscriptionId;
+	uint256 private immutable i_subscriptionId;
 	bytes32 private immutable i_gasLane;
-	VRFCoordinatorV2Interface private immutable i_vrfCoordinator;
+	IVRFCoordinatorV2Plus private immutable i_vrfCoordinator;
 	IERC20 public immutable i_usdcToken;
 	address public immutable i_treasury;
 	using SafeTransferLib for address;
@@ -190,15 +187,17 @@ contract QuantumLotteryBase is
 	function _sendVrfRequest(
 		uint256 hourId
 	) internal returns (uint256 requestId) {
-		try
-			i_vrfCoordinator.requestRandomWords(
-				i_gasLane,
-				i_subscriptionId,
-				REQUEST_CONFIRMATIONS,
-				CALLBACK_GAS_LIMIT,
-				NUM_WORDS
+		VRFV2PlusClient.RandomWordsRequest memory req = VRFV2PlusClient.RandomWordsRequest({
+			keyHash: i_gasLane,
+			subId: i_subscriptionId,
+			requestConfirmations: REQUEST_CONFIRMATIONS,
+			callbackGasLimit: CALLBACK_GAS_LIMIT,
+			numWords: NUM_WORDS,
+			extraArgs: VRFV2PlusClient._argsToBytes(
+				VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
 			)
-		returns (uint256 _requestId) {
+		});
+		try i_vrfCoordinator.requestRandomWords(req) returns (uint256 _requestId) {
 			requestId = _requestId;
 			s_requestIdToHourIdPlusOne[requestId] = hourId + 1;
 			emit WinnerSelectionRequested(hourId, requestId);
@@ -212,7 +211,7 @@ contract QuantumLotteryBase is
 	/// @param randomWords The random words returned by VRF
 	function fulfillRandomWords(
 		uint256 requestId,
-		uint256[] memory randomWords
+		uint256[] calldata randomWords
 	) internal override nonReentrant {
 		uint256 hourId = _validateAndClearRequest(requestId);
 		Draw storage draw = draws[hourId];

@@ -9,8 +9,8 @@ contract QuantumLottery is QuantumLotteryBase {
         constructor(
         address _usdcAddress,
         address _treasuryAddress,
-        address _vrfCoordinator,
-        uint64 _subscriptionId,
+    address _vrfCoordinator,
+    uint256 _subscriptionId,
         bytes32 _gasLane
     ) payable
         QuantumLotteryBase(
