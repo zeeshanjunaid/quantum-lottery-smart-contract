@@ -1,0 +1,58 @@
+{
+  "transactions": [
+    {
+      "hash": "0xfa7ec38f79842c2ebab3bce3fedde4a416306049fea0cd7a1ba5fba8502c15d7",
+      "transactionType": "CALL",
+      "contractName": null,
+      "contractAddress": "0xa202068950d1ce1fdc54a5f74a4242e6abe8acda",
+      "function": "processDrawChunk(uint256,uint256)",
+      "arguments": [
+        "487779",
+        "300"
+      ],
+      "transaction": {
+        "from": "0x94cf685cc5d26828e2ca4c9c571249fc9b1d16be",
+        "to": "0xa202068950d1ce1fdc54a5f74a4242e6abe8acda",
+        "gas": "0x70919",
+        "value": "0x0",
+        "input": "0xa83474350000000000000000000000000000000000000000000000000000000000077163000000000000000000000000000000000000000000000000000000000000012c",
+        "nonce": "0xab",
+        "chainId": "0x66eee"
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [
+    {
+      "status": "0x1",
+      "cumulativeGasUsed": "0x4b081",
+      "logs": [],
+      "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "type": "0x2",
+      "transactionHash": "0xfa7ec38f79842c2ebab3bce3fedde4a416306049fea0cd7a1ba5fba8502c15d7",
+      "transactionIndex": "0x1",
+      "blockHash": "0x7d263c5e348efdc478d015936409746bcf490301d379a377044ced506fc561f7",
+      "blockNumber": "0xb26af6e",
+      "gasUsed": "0x4b081",
+      "effectiveGasPrice": "0x5f5e100",
+      "from": "0x94cf685cc5d26828e2ca4c9c571249fc9b1d16be",
+      "to": "0xa202068950d1ce1fdc54a5f74a4242e6abe8acda",
+      "contractAddress": null,
+      "gasUsedForL1": "0x3c",
+      "l1BlockNumber": "0x8a1c79",
+      "timeboosted": false
+    }
+  ],
+  "libraries": [],
+  "pending": [],
+  "returns": {
+    "done": {
+      "internal_type": "bool",
+      "value": "false"
+    }
+  },
+  "timestamp": 1756009258,
+  "chain": 421614,
+  "commit": "3792cd9"
+}
