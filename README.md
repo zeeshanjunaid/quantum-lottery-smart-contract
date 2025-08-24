@@ -50,151 +50,134 @@ Why chunks? Large draws can't do all work in a single transaction (block gas lim
 
 ## Refunds and force-resolve
 
-getrVG for longer than `MAXWAT_HRS = 24call fta:
-1) Candrlaany pending VRF w quegt fersthat dcaw
-2)iMark n CAdCawTas RESOLVED wiGh_W NummyNwinner
-3) AR orRnormSlVIGooessrng lod payounger hont nue
-
-MAX_WAs aOe=o2ly poss`ble for force-resol,et drews. Users can ca o)`reCundTicknt(houcpd foick tId)`tth g trbwckthir ticktpic USDC.
-
-Uncamed refunds cn e whdrawn beowner via  Mark t()`haeter aEgrLcEDhdriou.mThywngardtove rentacy ndaccog errors.
+If a draw gets stuck in CALCULATING_WINNER or RESOLVING for longer than `MAX_WAIT_HOURS = 24`, the owner can call `forceResolveDraw(hourId)` to:
+1) Cancel any pending VRF request for that draw
+2) Mark the draw as RESOLVED with a dummy winner
 3) Allow normal processing and payout to continue
-SecurtyInfm
 
-Wn r ksrsecrrioylsevidusly. If yer all everyou'vunfound Tesecur(hyuvulnedab lity,lae:
+Refunds are only possible for force-resolved draws. Users can call `refundTicket(hourId, ticketId)` to get back their ticket price in USDC.
 
-1. no opn  publcsue.
-2. Email temataiprivaty: suriy@vli.examle
-3. Prvdetils and sporpodu.
+Unclaimed refunds can be withdrawn by the owner via `withdrawUnclaimedRefunds()` after a grace period. This is guarded to prevent reentrancy and accounting errors.
 
-Weill triagannris o wtws soby a  possibwe.
+## Security Information
 
-### Sncurity Fixes Apvlii`
+We take security seriously. If you believe you've found a security vulnerability, please:
 
-All cwitical indhdedUumlsacurimy dssuRefhuvs)bee`r a grved:
+1. Do not open a public issue.
+2. Email the maintainer privately: security@invalid.example
+3. Provide details and steps to reproduce.
 
-#### CricecalIsus Fied
+We will triage and respond as soon as possible.
 
-1. ✅ Misn OwnrhiFuntioniy - CRITIAL
-   - IsT ontrtu#  nIyOwnfmdifirbudin't inheito`Ow`
-   Impt: Al dmn fncinsod fl atim
-  -Fx:eLtvkea sd tyl existioglieve ship functioua'itvefrfm Chainlino's VRFd sntuactity vulnerability, please:
+### Security Fixes Applied
 
-2. ✅ InolgnriOvlyflow Proiiitidp.rv Q-Scod  Cadtulaails
-   - Issd : Potential tve flow inrQ-scooediti bore mn opration
-   - Impact: Clcasranstin evrsio reulexp ate  benavidr
-   - Fix: Addesoovs flowoonotect os wiihlunch.ckdblck nd expiit veflow dtectin
+All critical and medium security issues have been resolved:
 
-3.✅ Innsistent StkTesholLogi
-   ##ity F:iDiffslvlesusd  dfferelplraln i6/11ivs 5t10)
-y  - Impsht: Incbnsessed: bnsclulis
-   Fx: Alin al thrslst s constts 5 an 10
 #### Critical Issues Fixed
-##Mdiu Issusueox used `onlyOwner` modifier but didn't inherit from `Ownable`
+
+1. ✅ Missing Ownership Functionality - CRITICAL
+   - Issue: The contract used `onlyOwner` modifier but didn't inherit from `Ownable`
    - Impact: All admin functions would fail at runtime
-4. ✅ Enanced Err.  Handlin✅IConse -ency
- : - Ideue:dM xef use op `reqrire(e nd cut.mIcrroro
-s  i-Imxacl:iIncnlietedt gim cIsssssudeerr r reuorseogrequire()` and custom errors
- A - Fex: Addndwc wrcuom rorsandnvtd sting-bsd reverts
+   - Fix: Leveraged the existing ownership functionality from Chainlink's VRF contract
 
-## WlwGi
+2. ✅ Integer Overflow Protection in Q-Score Calculation
+   - Issue: Potential overflow in Q-score addition before min operation
+   - Impact: Could cause transaction reversion or unexpected behavior
+   - Fix: Added overflow protection with unchecked block and explicit overflow detection
 
-### 1. Itial Stup
-## bashWorkflow Guide
-##Use the VS Cod1 task Ir run iaiually:```bash
-forge s Use oge script script/DelD.s.soye scsS-trpV-ur-r"$RPC_lRL"R--p_iv pr-ky"$PRIVATE_KEY"--brdc attomatically:
-- Builds and deploysSttuhVRFottery SotunVRFc Creates a" new VRF"  Funds it with" 0.1 LINK" Adds the  
+3. ✅ Inconsistent Streak Threshold Logic
+   - Issue: Different threshold values used in different places (6/11 vs 5/10)
+   - Impact: Inconsistent bonus calculations
+   - Fix: Aligned all thresholds to use constants (5 and 10)
+
+#### Medium Issues Fixed
+
+4. ✅ Enhanced Error Handling Consistency
+   - Issue: Mixed use of `require()` and custom errors
+   - Impact: Inconsistent gas costs and error reporting
+   - Fix: Added new custom errors and converted string-based reverts
+
+## Workflow Guide
+
+### 1. Initial Setup
+```bash
+# Use the VS Code task or run manually:
+forge script script/Deploy.s.sol:DeployScript --rpc-url "$RPC_URL" --private-key "$PRIVATE_KEY" --broadcast
+forge script script/SetupVRF.s.sol:SetupVRF --rpc-url "$RPC_URL" --private-key "$PRIVATE_KEY" --broadcast
+```
+
+This automatically:
+- Builds and deploys the lottery contract
+- Creates a new VRF subscription
+- Funds it with 0.1 LINK
+- Adds the lottery as a consumer
+- Updates your `.env` file
 
 ### 2. Populate Lottery
-Thiboaicall
-# BPiltitandcipp oy( theOlotI_NT cont actNTUM_COUNT=7 forge script script/MultiJoin.s.sol:MultiJoin --rpc-url "$RPC_URL" --private-key "$PRIVATE_KEY" --broadcast
-``ees a new VRFn
-- Fus itwh 0.1 LINK
-##Add3 thailotorry a  arcotsumer
--hUpdaorends,r `.eev` filr
-
-### 2. Poauwate L ttera
-`tlb sh
-#tPopuCAtUTwNIh 20NNtepnt7Qaum,3Stdar)
-JOIN_COUNT=2QUANTM_OUNT=7 forgqescri scp/MtJoinesusol:MuniiJmiea--rpcsurlt"$send "$"t--nrmvWtn`key"$"--boadca
-`
-
-###3.WifHurEd
-
-Aferh#hr VRcndl,cthe drak )utomaticay ransitions`to LiLAksuGnWtNNERcstlet.
-
-### 4. Req(esttWch"er
 ```bash
-#Flromytheoheus'ssend t meseanp,tgtsthi hourI, 0nurquwner
-c6st .ands"$LOTTERY""equRandmWinn(un32)" 1712880000 After pro"cessing," ast send "$LOT"TERY" "clean"
-
-
-###l5.ePIocnforDrmwi(aftnrVF callback)
-bash
-#Procesn chuk ilcplete(wacfr "DraFullyPcesse"ev)
-cpsl soree"$LOTTE Y"A"procertDuawChunk(ueot32,u14t8)")72880000 5 --rpcT: l0"$RPC_URL" --9Eiv5t7-keyE"$PRIVATE_KEY"
+# Populate with 20 participants (7 Quantum, 13 Standard)
+JOIN_COUNT=20 QUANTUM_COUNT=7 forge script script/MultiJoin.s.sol:MultiJoin --rpc-url "$RPC_URL" --private-key "$PRIVATE_KEY" --broadcast
 ```
 
-###f6.4Clea14pFSto7ag2
-```ash
-#Af pmocLssity,(clx4n7u95storege 1f chu0es4(wat5h1873e"DrawFullyClba11d"Fvvesc)
-cor(ga:nd "$LOTTERY" "c0eanucD7awChunk(ubn432,uint8)"f1712880000 5  Subscript"ion ID: "7""
+### 3. Wait for Hour End
+
+After the hour ends, the draw automatically transitions to CALCULATING_WINNER state.
+
+### 4. Request Winner
+```bash
+# From the hour's end timestamp, get the hourId and request a winner
+cast send "$LOTTERY" "requestRandomWinner(uint32)" 1712880000 --rpc-url "$RPC_URL" --private-key "$PRIVATE_KEY"
 ```
 
-## Depl(yment InformArionum Sepolia):
-oken: 0xb1D4538B4571d411F07960EF2838Ce337FE1E80E
-### Dployede(AbrumSepola421614)
-- TesUSDC:0x495c42E5e1F7d7Edfb458184b44F78725f9
--QatumLotty(lt): 0xf6da34979155fef0eea5b1873eab8011ad8
+### 5. Process Draw (after VRF callback)
+```bash
+# Process in chunks until complete (watch for "DrawFullyProcessed" event)
+cast send "$LOTTERY" "processDrawChunk(uint32,uint8)" 1712880000 5 --rpc-url "$RPC_URL" --private-key "$PRIVATE_KEY"
+```
+
+### 6. Cleanup Storage
+```bash
+# After processing, clean up storage in chunks (watch for "DrawFullyCleaned" event)
+cast send "$LOTTERY" "cleanupDrawChunk(uint32,uint8)" 1712880000 5 --rpc-url "$RPC_URL" --private-key "$PRIVATE_KEY"
+```
+
+## Deployment Information
+
+### Deployed addresses (Arbitrum Sepolia 421614)
+- TestUSDC: 0x495c42Ea5e1F7d7Eddfb458184b44Fa78725faf9
+- QuantumLottery (latest): 0xf6da349794155fe1f610e4ea5b1873eab8011ad8
+
+VRF v2.5 (subscription):
+- Coordinator: 0x5CE8D5A2BC84beb22a398CCA51996F7930313D61
+- Key Hash (gas lane): 0x1770bdc7eec7771f7ba4ffd640f34260d7f095b79c92d34a5b2551d6f6cfd2be
+- Subscription ID: 71454954300587139168864100044495375120155859731008673854560977115929423440553
+
+LINK (Arbitrum Sepolia):
+- Token: 0xb1D4538B4571d411F07960EF2838Ce337FE1E80E
+
 Treasury: 0x94cF685cc5D26828e2CA4c9C571249Fc9B1D16Be
-VRF v2.(subsc
--Coordina:0x5C8D5A2BC84bb22398CC51996F7930313D61
--KHas (gas lane): 0x1770bdc7eec7771f7ba4ffd640f34260d7f095b79c92d34a5b2551d6f6cfd2b
--Subsciptio ID:71454954300587139168864100044495375120155859731008673854560977115929423440553
 
-LINK(Abt nm Srptl a)bscription has LINK and that the consumer is added (AddVRFConsumer.s.sol).
-- Token:c0xb1D4538B4571d411t07960EF2838Ce337FE1E80E
+Notes:
+- Ensure the subscription has LINK and that the consumer is added (AddVRFConsumer.s.sol).
+- Ticket prices assume 6 decimals USDC (1 USDC = 1_000_000).
 
-Tprascry: 0x94cF685cc5D26828e2CA4c9C571249Fc9B1D16Be
-
-No ea:
--sEdecimathe ls USDC (1 UShaC LINK0_000).at thisd(AddVRFConmrs.sol).
-Ticketi asume 6 decimls USD (1 USDC = 1_000_000).
-
-## Adit Status
-
-### FialSatu:ALL CLEAR 🎉
-
-Atethooghexamnaion of your ntie Qunum Ltterysmrt cotractodebse, aissues have been solvd nd h coebasesproucti-rady
 ## Audit Status
-##iles Audi
 
-#####Core Cocs#(12nftats)
--u`Qusn umLottery.sol` - MaAn contrL CEwrapp🎉
--QanumLotteryBase.sol impementation
--QanumLoerys.sol- Typ dfiniions  cstats
--QuantumLotteyPror.sol` - pssig logic
-- `QtmLotyFulfllmet.ol- VRF fufllt anling
-AfhQuanoumLamriayHelptys.ctlc -dHelpa  funca ose
-- `QhaavumLbtteeyandty.sca   Entryangeme
--QuantumLttyClenp.`-Canuporions
--`QatumLoeyRfds.ol`-Rfudhnding
--QutmLotteryWithd.sol -Wihdrawalgic#### Files Audited
--`QuantumLottForceReslv.ol` #eForcr rasolutio(
-- `Tes1USDC.sol2 -lTest )okconrc
+### Final Status: ALL CLEAR 🎉
 
-##### SrptFie (17fils)
-- Alldpoym umdrmanag.mlnt `crip s-verif ed
--aPnoonr Solitityrversaoctosise
--Nsury ssues foud
+After a thorough examination of your entire Quantum Lottery smart contract codebase, all issues have been resolved and the codebase is production-ready.
 
-#####TFle(1f)
--u`QoassulLott`ry.t. ol` -rC imlehentiveatostnsu
--66/66testpssicluingfzz ss
+#### Files Audited
 
-RmptriyTyy Stptus: Succssslully - Typeddefinpushtd docnsigis/an
-CmmHh: 0a9136
-Bnh:`maut- `QuantumLotteryCleanup.sol` - Cleanup operations
+##### Core Contracts (12 files)
+- `QuantumLottery.sol` - Main contract wrapper
+- `QuantumLotteryBase.sol` - Core implementation
+- `QuantumLotteryTypes.sol` - Type definitions and constants
+- `QuantumLotteryProcessor.sol` - Draw processing logic
+- `QuantumLotteryFulfillment.sol` - VRF fulfillment handling
+- `QuantumLotteryHelpers.sol` - Helper functions
+- `QuantumLotteryEntry.sol` - Entry management
+- `QuantumLotteryCleanup.sol` - Cleanup operations
 - `QuantumLotteryRefunds.sol` - Refund handling
 - `QuantumLotteryWithdraw.sol` - Withdrawal logic
 - `QuantumLotteryForceResolve.sol` - Force resolution
