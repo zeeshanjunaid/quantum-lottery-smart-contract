@@ -32,8 +32,8 @@ Core dependencies:
 - Chainlink VRF v2 (coordinator + consumer base)
 
 ## Key constants (see `QuantumLotteryTypes.sol`)
-- Standard ticket: `STANDARD_TICKET_PRICE = 1_000_000` (1 USDC, 6 decimals)
-- Quantum ticket: `QUANTUM_TICKET_PRICE = 3_000_000` (3 USDC)
+- Standard ticket: `STANDARD_TICKET_PRICE = 10_000_000` (10 USDC, 6 decimals)
+- Quantum ticket: `QUANTUM_TICKET_PRICE = 30_000_000` (30 USDC)
 - Winner payout percent: `WINNER_PAYOUT_PERCENT = 92` (treasury fee 8%)
 - Max Q-score: `MAX_QSCORE = 100_000`
 - Seconds per hour: `SECONDS_PER_HOUR = 3600`
@@ -121,7 +121,7 @@ Constructor args for `QuantumLottery`:
 - subscriptionId (uint64)
 - gasLane (bytes32)
 
-Tip: On testnets you can deploy `TestUSDC` and mint test balances. Ticket prices are set in 6 decimals (1 USDC = 1_000_000).
+Tip: On testnets you can deploy `TestUSDC` and mint test balances. Ticket prices are set in 6 decimals (1 USDC = 1_000_000); current prices are 10 and 30 USDC.
 
 ### Testnet deployment (Arbitrum Sepolia 421614)
 

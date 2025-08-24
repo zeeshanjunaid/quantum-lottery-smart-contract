@@ -226,7 +226,7 @@ contract QuantumLotteryTest is Test {
     function test_Revert_WhenDrawIsFull() public {
         uint256 cap = lottery.MAX_PARTICIPANTS();
         for (uint256 i = 0; i < cap; i++) {
-            _mintAndApprove(address(uint160(i + 1)), 1 * ONE_USDC);
+        _mintAndApprove(address(uint160(i + 1)), 10 * ONE_USDC);
             _buy(
                 address(uint160(i + 1)),
                 QuantumLotteryTypes.TicketType.Standard
@@ -336,8 +336,8 @@ contract QuantumLotteryTest is Test {
         // Deterministic capping test: set qScore just below cap and force a loss
         address p1 = makeAddr("capAlice");
         address p2 = makeAddr("capBob");
-        _mintAndApprove(p1, 10 * ONE_USDC);
-        _mintAndApprove(p2, 10 * ONE_USDC);
+    _mintAndApprove(p1, 30 * ONE_USDC);
+    _mintAndApprove(p2, 10 * ONE_USDC);
 
         // use test helper to set player state directly
 
@@ -707,8 +707,8 @@ contract QuantumLotteryTest is Test {
         // Create draw with two participants
         address a = makeAddr("ra");
         address b = makeAddr("rb");
-        _mintAndApprove(a, 10 * ONE_USDC);
-        _mintAndApprove(b, 10 * ONE_USDC);
+    _mintAndApprove(a, 10 * ONE_USDC);
+    _mintAndApprove(b, 30 * ONE_USDC);
         vm.prank(a);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
         vm.prank(b);
@@ -774,7 +774,7 @@ contract QuantumLotteryTest is Test {
         _warpToNextHour();
 
         address x = makeAddr("rx");
-        _mintAndApprove(x, 5 * ONE_USDC);
+    _mintAndApprove(x, 10 * ONE_USDC);
         vm.prank(x);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
         // determine hour from stored player state to avoid warp/timestamp ambiguity
@@ -788,7 +788,7 @@ contract QuantumLotteryTest is Test {
     function test_WithdrawUnclaimed_RevertBeforeGracePeriod() public {
         // Setup and force-resolve
         address a = makeAddr("wa");
-        _mintAndApprove(a, 5 * ONE_USDC);
+    _mintAndApprove(a, 10 * ONE_USDC);
         vm.prank(a);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
         uint256 hourId = block.timestamp / 3600;
@@ -808,8 +808,8 @@ contract QuantumLotteryTest is Test {
         // Setup draw and force-resolve
         address a = makeAddr("ea");
         address b = makeAddr("eb");
-        _mintAndApprove(a, 5 * ONE_USDC);
-        _mintAndApprove(b, 5 * ONE_USDC);
+    _mintAndApprove(a, 10 * ONE_USDC);
+    _mintAndApprove(b, 10 * ONE_USDC);
         vm.prank(a);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
         vm.prank(b);
@@ -856,7 +856,7 @@ contract QuantumLotteryTest is Test {
         // mix of standard and quantum buys
         for (uint256 i = 0; i < 5; i++) {
             address p = address(uint160(1000 + i));
-            _mintAndApprove(p, 10 * ONE_USDC);
+            _mintAndApprove(p, 100 * ONE_USDC);
             if (i % 2 == 0) {
                 vm.prank(p);
                 lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
@@ -1013,7 +1013,7 @@ contract QuantumLotteryTest is Test {
         uint256 hourId = block.timestamp / 3600;
         for (uint256 i = 0; i < stressCount; i++) {
             address player = address(uint160(i + 1));
-            _mintAndApprove(player, 1 * ONE_USDC);
+            _mintAndApprove(player, 10 * ONE_USDC);
             _buy(player, QuantumLotteryTypes.TicketType.Standard);
         }
 
@@ -1042,7 +1042,7 @@ contract QuantumLotteryTest is Test {
         // prepare participants (compute hour after buys to be robust)
         for (uint256 i = 0; i < cap; i++) {
             address player = address(uint160(2000 + i + 1));
-            _mintAndApprove(player, 1 * ONE_USDC);
+            _mintAndApprove(player, 10 * ONE_USDC);
             _buy(player, QuantumLotteryTypes.TicketType.Standard);
         }
 
@@ -1082,7 +1082,7 @@ contract QuantumLotteryTest is Test {
                 _warpToNextHour();
                 for (uint256 i = 0; i < cap; i++) {
                     address player2 = address(uint160(3000 + i + 1));
-                    _mintAndApprove(player2, 1 * ONE_USDC);
+                    _mintAndApprove(player2, 10 * ONE_USDC);
                     _buy(player2, QuantumLotteryTypes.TicketType.Standard);
                 }
                 // compute the new hour from a sample participant after buys
@@ -1105,7 +1105,7 @@ contract QuantumLotteryTest is Test {
 
         for (uint256 i = 0; i < cap; i++) {
             address player = address(uint160(4000 + i + 1));
-            _mintAndApprove(player, 1 * ONE_USDC);
+            _mintAndApprove(player, 10 * ONE_USDC);
             _buy(player, QuantumLotteryTypes.TicketType.Standard);
         }
 
@@ -1137,9 +1137,9 @@ contract QuantumLotteryTest is Test {
         address p2 = address(uint160(202));
         address p3 = address(uint160(203));
 
-        _mintAndApprove(p1, 1 * ONE_USDC);
-        _mintAndApprove(p2, 1 * ONE_USDC);
-        _mintAndApprove(p3, 1 * ONE_USDC);
+    _mintAndApprove(p1, 10 * ONE_USDC);
+    _mintAndApprove(p2, 10 * ONE_USDC);
+    _mintAndApprove(p3, 10 * ONE_USDC);
 
         // All buy in the same hour
         vm.prank(p1);
@@ -1213,7 +1213,7 @@ contract QuantumLotteryTest is Test {
         // create buys
         for (uint256 i = 0; i < count; i++) {
             address p = address(uint160(10000 + i));
-            _mintAndApprove(p, 10 * ONE_USDC);
+            _mintAndApprove(p, 100 * ONE_USDC);
             // pseudo-random ticket type from seed
             uint256 bit = (seed >> (i % 256)) & 1;
             if (bit == 0) {
@@ -1253,7 +1253,7 @@ contract QuantumLotteryTest is Test {
         // set different qScores via debugSetPlayer then buy
         for (uint256 i = 0; i < n; i++) {
             address p = address(uint160(11000 + i));
-            _mintAndApprove(p, 10 * ONE_USDC);
+            _mintAndApprove(p, 100 * ONE_USDC);
             // derive qScore from seed (ensure non-zero)
             uint256 q = (uint256(keccak256(abi.encode(seed, i))) % 1000) + 1;
             vm.prank(owner);
@@ -1316,8 +1316,8 @@ contract QuantumLotteryTest is Test {
 
         address subj = makeAddr("fuzz_subj");
         address opp = makeAddr("fuzz_opp");
-        _mintAndApprove(subj, 1000 * ONE_USDC);
-        _mintAndApprove(opp, 1000 * ONE_USDC);
+    _mintAndApprove(subj, 10000 * ONE_USDC);
+    _mintAndApprove(opp, 10000 * ONE_USDC);
 
         // perform many rounds where subj always loses
         for (uint256 r = 0; r < rounds; r++) {
@@ -1363,7 +1363,7 @@ contract QuantumLotteryTest is Test {
         for (uint256 i = 0; i < count; i++) {
             address p = address(uint160(12000 + i));
             arr[i] = p;
-            _mintAndApprove(p, 10 * ONE_USDC);
+            _mintAndApprove(p, 100 * ONE_USDC);
             uint256 bit = (seed >> (i % 256)) & 1;
             if (bit == 0) {
                 vm.prank(p);
@@ -1437,7 +1437,7 @@ contract QuantumLotteryTest is Test {
     function test_CallsAfterPrizePotZero() public {
         // create a draw and request winner, then owner force-resolves and withdraws; ensure withdrawUnclaimed works and processDrawChunk cannot be used to payout
         address p = makeAddr("e1");
-        _mintAndApprove(p, 5 * ONE_USDC);
+    _mintAndApprove(p, 10 * ONE_USDC);
         vm.prank(p);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
         uint256 hourId = block.timestamp / 3600;
@@ -1488,7 +1488,7 @@ contract QuantumLotteryTest is Test {
         localVrf.addConsumer(localSub, address(malLottery));
 
         address p1 = makeAddr("mal1");
-        _mintAndApprove(p1, 10 * ONE_USDC);
+    _mintAndApprove(p1, 20 * ONE_USDC);
         // mint malicious tokens to player and approve using the malicious lottery's price constant
         uint256 malPrice = malLottery.STANDARD_TICKET_PRICE();
         m.mint(p1, malPrice);
@@ -1543,7 +1543,7 @@ contract QuantumLotteryTest is Test {
         address p = makeAddr("lah");
         // before playing
         assertEq(lottery.lastEnteredHour(p), 0);
-        _mintAndApprove(p, 5 * ONE_USDC);
+    _mintAndApprove(p, 10 * ONE_USDC);
         vm.prank(p);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
         uint256 h = block.timestamp / 3600;
@@ -1553,7 +1553,7 @@ contract QuantumLotteryTest is Test {
     function test_getDrawStatus_Transitions() public {
         // Test normal flow first
         uint256 normalHour = block.timestamp / 3600;
-        _mintAndApprove(alice, 5 * ONE_USDC);
+    _mintAndApprove(alice, 10 * ONE_USDC);
         vm.prank(alice);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
         _warpToNextHour();
@@ -1590,7 +1590,7 @@ contract QuantumLotteryTest is Test {
         // now test forced flow - completely separate draw
         _warpToNextHour();
         address p2 = makeAddr("fr2");
-        _mintAndApprove(p2, 5 * ONE_USDC);
+    _mintAndApprove(p2, 10 * ONE_USDC);
         vm.prank(p2);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
         // determine the entered hour directly from contract state (robust)
@@ -1625,7 +1625,7 @@ contract QuantumLotteryTest is Test {
     /// 14.1 Ensure VRF mock integration clears the requestId -> hour mapping after fulfill
     function test_VRF_MockIntegration() public {
         address p = makeAddr("vrf_p");
-        _mintAndApprove(p, 5 * ONE_USDC);
+    _mintAndApprove(p, 10 * ONE_USDC);
         vm.prank(p);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
 
@@ -1658,7 +1658,7 @@ contract QuantumLotteryTest is Test {
     function test_USDC_Mock_behaviour() public {
         // Case A: user hasn't approved - transferFrom should revert via SafeERC20
         address p = makeAddr("noapprove");
-        usdc.mint(p, 5 * ONE_USDC);
+    usdc.mint(p, 10 * ONE_USDC);
         vm.prank(p);
         vm.expectRevert();
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
@@ -1697,7 +1697,7 @@ contract QuantumLotteryTest is Test {
     // =============================================================
     function test_Events_TicketPurchased() public {
         address p = makeAddr("evp");
-        _mintAndApprove(p, 5 * ONE_USDC);
+    _mintAndApprove(p, 10 * ONE_USDC);
         uint256 hourId = block.timestamp / 3600;
         // expect TicketPurchased with baseline qScore
         vm.expectEmit(true, true, false, true);
@@ -1715,7 +1715,7 @@ contract QuantumLotteryTest is Test {
         public
     {
         address p = makeAddr("evr1");
-        _mintAndApprove(p, 5 * ONE_USDC);
+    _mintAndApprove(p, 10 * ONE_USDC);
         vm.prank(p);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
         uint256 hourId = block.timestamp / 3600;
@@ -1738,8 +1738,8 @@ contract QuantumLotteryTest is Test {
     function test_Events_WinnerPicked_matchesBalances() public {
         address p1 = makeAddr("wp1");
         address p2 = makeAddr("wp2");
-        _mintAndApprove(p1, 5 * ONE_USDC);
-        _mintAndApprove(p2, 5 * ONE_USDC);
+    _mintAndApprove(p1, 20 * ONE_USDC);
+    _mintAndApprove(p2, 20 * ONE_USDC);
         vm.prank(p1);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
         vm.prank(p2);
@@ -1776,17 +1776,17 @@ contract QuantumLotteryTest is Test {
             "second chunk should finish and emit WinnerPicked"
         );
 
-        // verify balances (players were minted 5 USDC each in this test)
+        // verify balances (players were minted 20 USDC each in this test)
         assertEq(
             usdc.balanceOf(p1),
-            5 * ONE_USDC - lottery.STANDARD_TICKET_PRICE() + winnerAmount
+            20 * ONE_USDC - lottery.STANDARD_TICKET_PRICE() + winnerAmount
         );
         assertEq(usdc.balanceOf(treasury), feeAmount);
     }
 
     function test_Events_RefundIssued_remainingLiability() public {
         address p = makeAddr("rf1");
-        _mintAndApprove(p, 5 * ONE_USDC);
+    _mintAndApprove(p, 10 * ONE_USDC);
         vm.prank(p);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
         uint256 hourId = block.timestamp / 3600;
@@ -1810,7 +1810,7 @@ contract QuantumLotteryTest is Test {
 
     function test_request_random_multiple_times_fail() public {
         uint256 h = block.timestamp / 3600;
-        _mintAndApprove(alice, 5 * ONE_USDC);
+    _mintAndApprove(alice, 10 * ONE_USDC);
         vm.prank(alice);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
         _warpToNextHour();
@@ -1836,10 +1836,10 @@ contract QuantumLotteryTest is Test {
         address p3 = address(uint160(303));
         address p4 = address(uint160(304));
 
-        _mintAndApprove(p1, 1 * ONE_USDC);
-        _mintAndApprove(p2, 1 * ONE_USDC);
-        _mintAndApprove(p3, 1 * ONE_USDC);
-        _mintAndApprove(p4, 1 * ONE_USDC);
+    _mintAndApprove(p1, 10 * ONE_USDC);
+    _mintAndApprove(p2, 10 * ONE_USDC);
+    _mintAndApprove(p3, 10 * ONE_USDC);
+    _mintAndApprove(p4, 10 * ONE_USDC);
 
         vm.prank(p1);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
@@ -1875,8 +1875,8 @@ contract QuantumLotteryTest is Test {
         address p1 = address(uint160(401));
         address p2 = address(uint160(402));
 
-        _mintAndApprove(p1, 1 * ONE_USDC);
-        _mintAndApprove(p2, 1 * ONE_USDC);
+    _mintAndApprove(p1, 10 * ONE_USDC);
+    _mintAndApprove(p2, 10 * ONE_USDC);
 
         vm.prank(p1);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
@@ -1910,9 +1910,9 @@ contract QuantumLotteryTest is Test {
         address p2 = address(uint160(502));
         address p3 = address(uint160(503));
 
-        _mintAndApprove(p1, 1 * ONE_USDC);
-        _mintAndApprove(p2, 1 * ONE_USDC);
-        _mintAndApprove(p3, 1 * ONE_USDC);
+    _mintAndApprove(p1, 10 * ONE_USDC);
+    _mintAndApprove(p2, 10 * ONE_USDC);
+    _mintAndApprove(p3, 10 * ONE_USDC);
 
         vm.prank(p1);
         lottery.buyTicket(QuantumLotteryTypes.TicketType.Standard);
@@ -2027,8 +2027,8 @@ contract QuantumLotteryTest is Test {
             uint256 buyHour = startHour + i;
 
             // reset balances and approvals for each iteration
-            usdc.mint(alice, 1 * ONE_USDC);
-            usdc.mint(bob, 1 * ONE_USDC);
+            usdc.mint(alice, 10 * ONE_USDC);
+            usdc.mint(bob, 10 * ONE_USDC);
             vm.prank(alice);
             usdc.approve(address(lottery), type(uint256).max);
             vm.prank(bob);

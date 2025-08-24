@@ -22,8 +22,9 @@ contract QuantumLotteryTypes {
     uint32 public constant STREAK_MODE_THRESHOLD = 5;
     uint32 public constant BLAZING_STREAK_THRESHOLD = 10;
     uint256 public constant COSMIC_SURGE_MULTIPLIER = 3;
-    uint256 public constant STANDARD_TICKET_PRICE = 1_000_000; // 1 USDC
-    uint256 public constant QUANTUM_TICKET_PRICE = 3_000_000; // 3 USDC
+    // Prices are in 6-decimal USDC units
+    uint256 public constant STANDARD_TICKET_PRICE = 10_000_000; // 10 USDC
+    uint256 public constant QUANTUM_TICKET_PRICE = 30_000_000; // 30 USDC
     uint256 public constant WINNER_PAYOUT_PERCENT = 92;
     uint256 public constant PERCENTAGE_TOTAL = 100;
     uint256 public constant SECONDS_PER_HOUR = 3600;
