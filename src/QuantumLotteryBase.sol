@@ -420,4 +420,14 @@ contract QuantumLotteryBase is VRFConsumerBaseV2Plus, ReentrancyGuard, QuantumLo
     function getParticipantsCount(uint256 hourId) public view returns (uint256) {
         return draws[hourId].participants.length;
     }
+
+    /// @notice View whether cleanup is pending for a given hour.
+    function isCleanupPending(uint256 hourId) external view returns (bool) {
+        return draws[hourId].cleanupPending;
+    }
+
+    /// @notice View the VRF request timestamp for an hour (0 if none).
+    function getRequestTimestamp(uint256 hourId) external view returns (uint256) {
+        return draws[hourId].requestTimestamp;
+    }
 }
