@@ -11,35 +11,35 @@ contract CompleteResolve is Script {
     function run() external {
         address lottery = vm.envAddress("LOTTERY");
         uint256 hourId = vm.envOr("HOUR_ID", uint256(0));
-        
+
         if (hourId == 0) {
             // Default to previous hour
             hourId = block.timestamp / 3600 - 1;
         }
-        
+
         console.log("=== COMPLETE LOTTERY RESOLUTION ===");
         console.log("Target hour:", hourId);
         console.log("Current timestamp:", block.timestamp);
-        
+
         // Step 1: Check if we can resolve this hour
         QuantumLotteryTypes.DrawStatus status = QuantumLottery(lottery).getDrawStatus(hourId);
         console.log("Current status:", uint8(status));
-        
+
         if (status == QuantumLotteryTypes.DrawStatus.RESOLVED) {
             console.log("Already resolved! Checking winner...");
             _showResults(lottery, hourId);
             return;
         }
-        
+
         if (status == QuantumLotteryTypes.DrawStatus.OPEN) {
             uint256 participants = QuantumLottery(lottery).getParticipantsCount(hourId);
             console.log("Participants:", participants);
-            
+
             if (participants == 0) {
                 console.log("No participants - nothing to resolve");
                 return;
             }
-            
+
             console.log("Requesting VRF randomness...");
             vm.startBroadcast();
             try QuantumLottery(lottery).requestRandomWinner(hourId) returns (uint256 requestId) {
@@ -52,10 +52,10 @@ contract CompleteResolve is Script {
             vm.stopBroadcast();
             return;
         }
-        
+
         if (status == QuantumLotteryTypes.DrawStatus.CALCULATING_WINNER) {
             console.log("VRF requested, trying to process...");
-            
+
             vm.startBroadcast();
             try QuantumLottery(lottery).processDrawChunk(hourId, 300) returns (bool done) {
                 if (done) {
@@ -71,18 +71,18 @@ contract CompleteResolve is Script {
             vm.stopBroadcast();
             return;
         }
-        
+
         console.log("Unexpected status, cannot proceed");
     }
-    
+
     function _showResults(address lottery, uint256 hourId) internal view {
         console.log("");
         console.log("=== FINAL RESULTS ===");
-        
+
         address winner = QuantumLottery(lottery).getWinner(hourId);
         uint256 pot = QuantumLottery(lottery).getPrizePot(hourId);
         uint256 payout = pot * 92 / 100;
-        
+
         console.log("Winner:", winner);
         console.log("Total pot:", pot / 1000000, "USDC");
         console.log("Winner payout:", payout / 1000000, "USDC");

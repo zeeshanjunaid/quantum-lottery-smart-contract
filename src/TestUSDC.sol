@@ -5,7 +5,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract TestUSDC is ERC20, Ownable {
-    constructor() ERC20("Test USDC", "tUSDC") Ownable(msg.sender) payable {}
+    constructor() payable ERC20("Test USDC", "tUSDC") Ownable(msg.sender) {}
 
     function decimals() public pure override returns (uint8) {
         return 6;

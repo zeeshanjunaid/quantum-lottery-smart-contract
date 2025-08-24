@@ -16,18 +16,18 @@ contract CompareStats is Script, QuantumLotteryTypes {
 
         uint256 nowTs = block.timestamp;
         uint256 currHour = nowTs / SECONDS_PER_HOUR;
-    // Optional TARGET_HOUR (e.g., two hours ago). Defaults to previous hour if not provided.
-    uint256 targetHour = vm.envOr("TARGET_HOUR", currHour > 0 ? currHour - 1 : 0);
+        // Optional TARGET_HOUR (e.g., two hours ago). Defaults to previous hour if not provided.
+        uint256 targetHour = vm.envOr("TARGET_HOUR", currHour > 0 ? currHour - 1 : 0);
 
-    // Draw summary (for target hour)
-    uint256 pot = lottery.getPrizePot(targetHour);
-    address winner = lottery.getWinner(targetHour);
-    QuantumLotteryTypes.DrawStatus status = lottery.getDrawStatus(targetHour);
+        // Draw summary (for target hour)
+        uint256 pot = lottery.getPrizePot(targetHour);
+        address winner = lottery.getWinner(targetHour);
+        QuantumLotteryTypes.DrawStatus status = lottery.getDrawStatus(targetHour);
         uint256 winnerPayout = (pot * WINNER_PAYOUT_PERCENT) / PERCENTAGE_TOTAL;
         uint256 feeAmount = pot - winnerPayout;
 
-    console.log("=== Draw Summary (target hour) ===");
-    console.log("targetHour:", targetHour);
+        console.log("=== Draw Summary (target hour) ===");
+        console.log("targetHour:", targetHour);
         console.log("status:", uint256(status)); // 0 OPEN,1 CALCULATING_WINNER,2 RESOLVING,3 RESOLVED
         console.log("pot (raw):", pot);
         console.log("pot (t$):", pot / 1_000_000);
@@ -42,9 +42,7 @@ contract CompareStats is Script, QuantumLotteryTypes {
             QuantumLotteryTypes.Participant memory p = lottery.getParticipant(targetHour, i);
             (uint64 lastPlayedHr, uint32 streak, uint256 qScoreNow) = lottery.players(p.playerAddress);
             bool isWinner = (p.playerAddress == winner);
-            string memory ttype = p.ticketTypeOnEntry == QuantumLotteryTypes.TicketType.Quantum
-                ? "Quantum"
-                : "Standard";
+            string memory ttype = p.ticketTypeOnEntry == QuantumLotteryTypes.TicketType.Quantum ? "Quantum" : "Standard";
 
             console.log("#", i);
             console.log("name:", _name(p.playerAddress));

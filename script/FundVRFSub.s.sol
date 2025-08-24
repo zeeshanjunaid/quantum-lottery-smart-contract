@@ -3,7 +3,8 @@ pragma solidity ^0.8.20;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {LinkTokenInterface} from "chainlink-brownie-contracts/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
+import {LinkTokenInterface} from
+    "chainlink-brownie-contracts/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
 
 /// @notice Fund a Chainlink VRF v2 Subscription using LINK transferAndCall
 contract FundVRFSub is Script {
@@ -12,11 +13,11 @@ contract FundVRFSub is Script {
         address coordinator = vm.envAddress("VRF_COORDINATOR");
         uint64 subId = uint64(vm.envUint("VRF_SUBSCRIPTION_ID"));
         uint256 amount = vm.envOr("LINK_AMOUNT", uint256(100000000000000000)); // default 0.1 LINK
-        
+
         // Check sender balance first
         address sender = vm.addr(vm.envUint("PRIVATE_KEY"));
         uint256 balance = LinkTokenInterface(link).balanceOf(sender);
-        
+
         console.log("=== VRF SUBSCRIPTION FUNDING ===");
         console.log("LINK Token:", link);
         console.log("VRF Coordinator:", coordinator);
@@ -24,7 +25,7 @@ contract FundVRFSub is Script {
         console.log("Sender:", sender);
         console.log("Current LINK balance:", balance);
         console.log("Requested amount:", amount);
-        
+
         if (balance < amount) {
             console.log("ERROR: Insufficient LINK balance");
             console.log("Required:", amount);
@@ -34,11 +35,7 @@ contract FundVRFSub is Script {
         }
 
         vm.startBroadcast();
-        try LinkTokenInterface(link).transferAndCall(
-            coordinator,
-            amount,
-            abi.encode(subId)
-        ) returns (bool ok) {
+        try LinkTokenInterface(link).transferAndCall(coordinator, amount, abi.encode(subId)) returns (bool ok) {
             if (ok) {
                 console.log("SUCCESS: Funded subscription with", amount, "LINK");
             } else {

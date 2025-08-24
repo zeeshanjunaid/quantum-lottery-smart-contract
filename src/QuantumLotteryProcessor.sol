@@ -22,18 +22,14 @@ library QuantumLotteryProcessor {
     function processDrawChunk(
         mapping(uint256 => QuantumLotteryTypes.Draw) storage draws,
         mapping(address => QuantumLotteryTypes.Player) storage players,
-        mapping(uint256 => mapping(address => uint256))
-            storage /* s_participantIndexByHour */,
+        mapping(uint256 => mapping(address => uint256)) storage, /* s_participantIndexByHour */
         IERC20 i_usdcToken,
         address i_treasury,
         uint256 _hourId,
         uint256 _iterations
     ) internal returns (bool done, address[] memory cappedPlayers) {
         QuantumLotteryTypes.Draw storage draw = draws[_hourId];
-        require(
-            draw.status == QuantumLotteryTypes.DrawStatus.RESOLVING,
-            "Draw not ready"
-        );
+        require(draw.status == QuantumLotteryTypes.DrawStatus.RESOLVING, "Draw not ready");
 
         // Track players whose Q-scores hit the cap for event emission
         address[] memory cappedPlayersTemp = new address[](1000); // Max size for temp storage
@@ -71,28 +67,21 @@ library QuantumLotteryProcessor {
         uint256 participantCountB = draw.participants.length;
         uint256 j = draw.processingIndex;
         uint256 endB = j + _iterations;
-    if (endB >= participantCountB) endB = participantCountB;
+        if (endB >= participantCountB) endB = participantCountB;
 
-    for (; j < endB; ++j) {
+        for (; j < endB; ++j) {
             QuantumLotteryTypes.Participant storage part = draw.participants[j];
             if (part.playerAddress == draw.winner) {
-                QuantumLotteryTypes.Player storage player = players[
-                    part.playerAddress
-                ];
+                QuantumLotteryTypes.Player storage player = players[part.playerAddress];
                 player.lastPlayedHour = uint64(_hourId);
                 player.qScore = 100; // BASELINE_QSCORE
                 player.streakCount = 0;
             } else {
-                QuantumLotteryTypes.Player storage player = players[
-                    part.playerAddress
-                ];
+                QuantumLotteryTypes.Player storage player = players[part.playerAddress];
                 player.lastPlayedHour = uint64(_hourId);
-        ++player.streakCount;
+                ++player.streakCount;
                 uint256 qScoreIncrease;
-                if (
-                    part.ticketTypeOnEntry ==
-                    QuantumLotteryTypes.TicketType.Quantum
-                ) {
+                if (part.ticketTypeOnEntry == QuantumLotteryTypes.TicketType.Quantum) {
                     qScoreIncrease = 40 * effectiveBonus; // QUANTUM_TICKET_BONUS
                 } else {
                     uint32 streak = player.streakCount;
@@ -112,13 +101,10 @@ library QuantumLotteryProcessor {
                 ); // MAX_QSCORE
 
                 // Track if player hit the cap for event emission
-                if (
-                    player.qScore == 100000 &&
-                    cappedCount < cappedPlayersTemp.length
-                ) {
+                if (player.qScore == 100000 && cappedCount < cappedPlayersTemp.length) {
                     // MAX_QSCORE
                     cappedPlayersTemp[cappedCount] = part.playerAddress;
-            ++cappedCount;
+                    ++cappedCount;
                 }
             }
         }

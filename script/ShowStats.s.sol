@@ -73,13 +73,10 @@ contract ShowStats is Script, QuantumLotteryTypes {
         console.log("lastPlayedHour:", uint256(lastPlayedHr));
     }
 
-    function _printHour(
-        QuantumLottery lottery,
-        address usdc,
-        uint256 hourId,
-        string memory label,
-        address owner
-    ) internal view {
+    function _printHour(QuantumLottery lottery, address usdc, uint256 hourId, string memory label, address owner)
+        internal
+        view
+    {
         uint256 count = lottery.getParticipantsCount(hourId);
         console.log("=== Hour label:", label);
         console.log("hourId:", hourId);
@@ -101,11 +98,7 @@ contract ShowStats is Script, QuantumLotteryTypes {
         }
     }
 
-    function _nameFor(
-        uint256 index,
-        address player,
-        address owner
-    ) internal view returns (string memory) {
+    function _nameFor(uint256 index, address player, address owner) internal view returns (string memory) {
         if (player == owner) {
             return "Zeeshan";
         }

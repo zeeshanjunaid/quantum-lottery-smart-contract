@@ -8,10 +8,8 @@ library QuantumLotteryRefunds {
 
     function claimRefundCore(
         mapping(uint256 => QuantumLotteryTypes.Draw) storage draws,
-        mapping(uint256 => mapping(address => uint256))
-            storage participantIndexByHour,
-        mapping(uint256 => mapping(address => bool))
-            storage refundClaimedByHour,
+        mapping(uint256 => mapping(address => uint256)) storage participantIndexByHour,
+        mapping(uint256 => mapping(address => bool)) storage refundClaimedByHour,
         uint256 hourId,
         address claimer,
         uint256 STANDARD_TICKET_PRICE,
@@ -33,9 +31,9 @@ library QuantumLotteryRefunds {
             : QUANTUM_TICKET_PRICE;
 
         // mark claimed and clear participant slot and index
-    refundClaimedByHour[hourId][claimer] = true;
+        refundClaimedByHour[hourId][claimer] = true;
         p.playerAddress = address(0);
-    participantIndexByHour[hourId][claimer] = 0;
+        participantIndexByHour[hourId][claimer] = 0;
 
         // decrement reserved refunds liability
         draw.reservedRefunds -= refundAmount;

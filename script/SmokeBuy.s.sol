@@ -12,9 +12,9 @@ contract SmokeBuy is Script {
     function run() external {
         address usdc = vm.envAddress("USDC_ADDRESS");
         address lottery = vm.envAddress("LOTTERY");
-    // Use the configured broadcaster key so the intended owner joins
-    bytes32 pkb = vm.envBytes32("PRIVATE_KEY");
-    vm.startBroadcast(uint256(pkb));
+        // Use the configured broadcaster key so the intended owner joins
+        bytes32 pkb = vm.envBytes32("PRIVATE_KEY");
+        vm.startBroadcast(uint256(pkb));
 
         // Mint funds if using our TestUSDC (owner-only); harmless no-op on real USDC as it would revert.
         // Assumes the broadcast key is the TestUSDC owner (as in prior deploys).
@@ -26,14 +26,13 @@ contract SmokeBuy is Script {
 
         // Pick ticket type from env: TICKET_TYPE=0 (Standard) or 1 (Quantum)
         uint256 ttEnv = vm.envOr("TICKET_TYPE", uint256(0));
-        QuantumLotteryTypes.TicketType tt = ttEnv == 1
-            ? QuantumLotteryTypes.TicketType.Quantum
-            : QuantumLotteryTypes.TicketType.Standard;
+        QuantumLotteryTypes.TicketType tt =
+            ttEnv == 1 ? QuantumLotteryTypes.TicketType.Quantum : QuantumLotteryTypes.TicketType.Standard;
 
         // Approve max and buy a ticket
         IERC20(usdc).approve(lottery, type(uint256).max);
         QuantumLottery(lottery).buyTicket(tt);
 
-    vm.stopBroadcast();
+        vm.stopBroadcast();
     }
 }

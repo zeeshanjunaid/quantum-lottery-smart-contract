@@ -2,7 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {Script} from "forge-std/Script.sol";
-import {VRFCoordinatorV2Interface} from "chainlink-brownie-contracts/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
+import {VRFCoordinatorV2Interface} from
+    "chainlink-brownie-contracts/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
 
 /// @notice Cancels a Chainlink VRF v2 (uint64) subscription and sends remaining LINK to WITHDRAW_TO.
 /// Env vars required:

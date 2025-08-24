@@ -91,21 +91,9 @@ contract QuantumLotteryTypes {
     }
 
     // ========================= EVENTS =========================
-    event TicketPurchased(
-        uint256 indexed hourId,
-        address indexed player,
-        TicketType ticketType,
-        uint256 qScoreOnEntry
-    );
-    event WinnerSelectionRequested(
-        uint256 indexed hourId,
-        uint256 indexed requestId
-    );
-    event RandomnessFulfilled(
-        uint256 indexed hourId,
-        uint256 indexed requestId,
-        uint256 totalQScoreInPool
-    );
+    event TicketPurchased(uint256 indexed hourId, address indexed player, TicketType ticketType, uint256 qScoreOnEntry);
+    event WinnerSelectionRequested(uint256 indexed hourId, uint256 indexed requestId);
+    event RandomnessFulfilled(uint256 indexed hourId, uint256 indexed requestId, uint256 totalQScoreInPool);
     event WinnerPicked(
         uint256 indexed hourId,
         address indexed winner,
@@ -115,31 +103,10 @@ contract QuantumLotteryTypes {
     );
     event CosmicSurgeScheduled(uint256 indexed hourId);
     event CosmicSurgeCanceled(uint256 indexed hourId);
-    event EmergencyWithdraw(
-        address indexed token,
-        address indexed to,
-        uint256 amount
-    );
+    event EmergencyWithdraw(address indexed token, address indexed to, uint256 amount);
     event DrawForceResolved(uint256 indexed hourId);
-    event DrawForceResolvedWithCount(
-        uint256 indexed hourId,
-        uint256 participantCount
-    );
-    event RefundIssued(
-        uint256 indexed hourId,
-        address indexed player,
-        uint256 amount,
-        uint256 remainingLiability
-    );
-    event WithdrawUnclaimed(
-        uint256 indexed hourId,
-        address indexed to,
-        uint256 amount,
-        uint256 remainingLiability
-    );
-    event QScoreCapped(
-        address indexed player,
-        uint256 indexed hourId,
-        uint256 cappedAt
-    );
+    event DrawForceResolvedWithCount(uint256 indexed hourId, uint256 participantCount);
+    event RefundIssued(uint256 indexed hourId, address indexed player, uint256 amount, uint256 remainingLiability);
+    event WithdrawUnclaimed(uint256 indexed hourId, address indexed to, uint256 amount, uint256 remainingLiability);
+    event QScoreCapped(address indexed player, uint256 indexed hourId, uint256 cappedAt);
 }
