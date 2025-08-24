@@ -31,13 +31,16 @@ contract QuantumLotteryBase is VRFConsumerBaseV2Plus, ReentrancyGuard, QuantumLo
     // =============================================================
     //                        CORE USER FUNCTIONS
     // =============================================================
-    /// @notice Buy a ticket for the current hour’s draw.
+    /// @notice Buy a ticket for the current hour's draw.
     /// @param ticketType Ticket type: Standard or Quantum
 
     function buyTicket(QuantumLotteryTypes.TicketType ticketType) external nonReentrant {
+        // Validate caller is not zero address (though this is technically impossible with msg.sender)
+        if (msg.sender == address(0)) revert InvalidCallerAddress();
+
         // Validate enum input to avoid invalid values being treated as Quantum by default
         if (uint256(ticketType) > uint256(QuantumLotteryTypes.TicketType.Quantum)) {
-            revert("Invalid ticket type");
+            revert InvalidTicketType();
         }
         uint256 currentHourId = block.timestamp / SECONDS_PER_HOUR;
         Draw storage draw = draws[currentHourId];
@@ -96,6 +99,8 @@ contract QuantumLotteryBase is VRFConsumerBaseV2Plus, ReentrancyGuard, QuantumLo
     IVRFCoordinatorV2Plus private immutable i_vrfCoordinator;
     IERC20 public immutable i_usdcToken;
     address public immutable i_treasury;
+
+
 
     using SafeTransferLib for address;
 

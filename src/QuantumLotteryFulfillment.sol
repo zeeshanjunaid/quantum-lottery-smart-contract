@@ -5,6 +5,7 @@ import {QuantumLotteryTypes} from "./QuantumLotteryTypes.sol";
 
 library QuantumLotteryFulfillment {
     /// @dev Compute total Q-score for draw (moved out of contract to reduce stack pressure)
+    /// @dev Gas-optimized with overflow protection
     function computeTotalQScore(mapping(uint256 => QuantumLotteryTypes.Draw) storage draws, uint256 hourId)
         internal
         view
@@ -12,9 +13,17 @@ library QuantumLotteryFulfillment {
     {
         QuantumLotteryTypes.Draw storage d = draws[hourId];
         uint256 participantCount = d.participants.length;
+
+        // Gas limit protection: if too many participants, this could fail
+        // The VRF callback has a 2.5M gas limit, so we need to be careful
+        if (participantCount > 500) revert QuantumLotteryTypes.TooManyParticipants(); // MAX_PARTICIPANTS
+
         uint256 total = 0;
         for (uint256 i = 0; i < participantCount; ++i) {
-            total += d.participants[i].qScoreOnEntry;
+            uint256 qScore = d.participants[i].qScoreOnEntry;
+            // Overflow protection
+            if (total > type(uint256).max - qScore) revert QuantumLotteryTypes.QScoreTotalOverflow();
+            total += qScore;
         }
         return total;
     }

@@ -32,7 +32,7 @@ library QuantumLotteryProcessor {
         require(draw.status == QuantumLotteryTypes.DrawStatus.RESOLVING, "Draw not ready");
 
         // Track players whose Q-scores hit the cap for event emission
-        address[] memory cappedPlayersTemp = new address[](1000); // Max size for temp storage
+        address[] memory cappedPlayersTemp = new address[](1000); // MAX_CAPPED_PLAYERS_TEMP
         uint256 cappedCount = 0;
 
         // Phase A: find winner if not already picked
@@ -63,7 +63,7 @@ library QuantumLotteryProcessor {
         }
 
         // Phase B: process updates
-        uint256 effectiveBonus = draw.cosmicActive ? 3 : 1; // 3 = COSMIC_SURGE_MULTIPLIER
+        uint256 effectiveBonus = draw.cosmicActive ? 3 : 1; // COSMIC_SURGE_MULTIPLIER
         uint256 participantCountB = draw.participants.length;
         uint256 j = draw.processingIndex;
         uint256 endB = j + _iterations;
@@ -85,24 +85,33 @@ library QuantumLotteryProcessor {
                     qScoreIncrease = 40 * effectiveBonus; // QUANTUM_TICKET_BONUS
                 } else {
                     uint32 streak = player.streakCount;
-                    if (streak >= 11) {
+                    if (streak >= 10) {
                         // BLAZING_STREAK_THRESHOLD
                         qScoreIncrease = 20 * effectiveBonus; // BLAZING_STREAK_BONUS
-                    } else if (streak >= 6) {
+                    } else if (streak >= 5) {
                         // STREAK_MODE_THRESHOLD
                         qScoreIncrease = 15 * effectiveBonus; // STREAK_BONUS
                     } else {
                         qScoreIncrease = 10 * effectiveBonus; // BASE_LOSS_BONUS
                     }
                 }
-                player.qScore = FixedPointMathLib.min(
-                    player.qScore + qScoreIncrease,
-                    100000 // MAX_QSCORE
-                ); // MAX_QSCORE
 
-                // Track if player hit the cap for event emission
-                if (player.qScore == 100000 && cappedCount < cappedPlayersTemp.length) {
-                    // MAX_QSCORE
+                // Safe addition to prevent overflow before min operation
+                uint256 newQScore;
+                unchecked {
+                    // Check for overflow before addition
+                    if (player.qScore > type(uint256).max - qScoreIncrease) {
+                        newQScore = 100000; // MAX_QSCORE - cap at maximum if overflow would occur
+                    } else {
+                        newQScore = player.qScore + qScoreIncrease;
+                    }
+                }
+
+                player.qScore = FixedPointMathLib.min(newQScore, 100000); // MAX_QSCORE
+
+                // Track if player hit the cap for event emission with proper bounds checking
+                if (player.qScore == 100000 && cappedCount < 1000) {
+                    // MAX_QSCORE and MAX_CAPPED_PLAYERS_TEMP
                     cappedPlayersTemp[cappedCount] = part.playerAddress;
                     ++cappedCount;
                 }

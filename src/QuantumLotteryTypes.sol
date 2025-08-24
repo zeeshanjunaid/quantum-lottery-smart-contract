@@ -56,6 +56,10 @@ contract QuantumLotteryTypes {
     error IndexOutOfBounds();
     error DrawNotStuck();
     error TimeoutNotReached();
+    error InvalidTicketType();
+    error InvalidCallerAddress();
+    error TooManyParticipants();
+    error QScoreTotalOverflow();
 
     // ========================= STRUCTS =========================
     struct Player {
